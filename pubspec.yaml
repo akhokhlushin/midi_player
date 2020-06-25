@@ -21,6 +21,8 @@ dependencies:
   dart_midi:
   get_it: 
   equatable: 
+  # Device penetration
+  audioplayers: 
 
 dev_dependencies:
   flutter_test:
@@ -29,9 +31,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/
   # example:
   # fonts:
   #   - family: Schyler

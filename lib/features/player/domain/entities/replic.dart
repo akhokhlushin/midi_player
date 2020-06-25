@@ -1,9 +1,13 @@
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 
-class Replic {
+class Replic extends Equatable {
   final String replicPath;
   final Duration time;
 
-  Replic({ @required this.replicPath, @required this.time });
+  const Replic({ @required this.replicPath, @required this.time });
+
+  @override
+  List<Object> get props => [replicPath, time];
 }
