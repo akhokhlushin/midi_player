@@ -1,4 +1,5 @@
 import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:flutter/services.dart';
 import 'package:midi_player/features/player/domain/entities/replic.dart';
@@ -13,12 +14,17 @@ abstract class PlayerDataSource {
 }
 
 class PlayerDataSourceImpl extends PlayerDataSource {
-  final AudioCache _audioPlayer1;
-  final AudioCache _audioPlayer2;
+  final AudioPlayer _audioPlayer1;
+  final AudioPlayer _audioPlayer2;
   final MidiParser _midiParser;
+  AudioCache _audioCache1;
+  AudioCache _audioCache2;
 
   PlayerDataSourceImpl(
-      this._midiParser, this._audioPlayer1, this._audioPlayer2);
+      this._midiParser, this._audioPlayer1, this._audioPlayer2) {
+    _audioCache1 = AudioCache(fixedPlayer: _audioPlayer1);
+    _audioCache2 = AudioCache(fixedPlayer: _audioPlayer2);
+  }
 
   @override
   Future<List<Duration>> getTimeCodesFromMidiFile(
@@ -31,31 +37,23 @@ class PlayerDataSourceImpl extends PlayerDataSource {
 
     final MidiHeader header = midiFile.header;
 
-    print(header.format);
-    print(header.framesPerSecond);
-    print(header.numTracks);
-    print(header.ticksPerBeat);
-    print(header.ticksPerFrame);
-    print(header.timeDivision);
-
-    final List<Duration> durations = [];
+    final List<Duration> durations = [Duration.zero];
 
     final List<MidiEvent> track = midiFile.tracks[midiFile.tracks.length - 1];
 
     for (int i = 0; i < track.length; i++) {
       final event = track[i];
 
-      print(event.deltaTime);
-      print(event.lastEventTypeByte);
-      print(event.meta);
-      print(event.running);
-      print(event.type);
-      print(event.useByte9ForNoteOff);
+      int time = 0;
 
       if (event.type == 'noteOn') {
+        time = event.deltaTime * 10;
+      } else if (event.type == 'noteOff') {
         durations.add(
           Duration(
-            milliseconds: header.ticksPerBeat * 10,
+            milliseconds:
+                ((header.ticksPerBeat * 10) + (event.deltaTime * 10) + time) *
+                    5,
           ),
         );
       }
@@ -67,13 +65,17 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   @override
   Future<void> playMusicAndReplics(
       {List<Replic> replics, String songPath}) async {
-    _audioPlayer1.play(songPath);
+    _audioCache1.play(songPath);
 
     for (int i = 0; i < replics.length; i++) {
       final replic = replics[i];
-      await Future.delayed(replic.time, () {
-        _audioPlayer2.play(replic.replicPath);
+      await Future.delayed(replic.time, () async {
+        await _audioPlayer1.setVolume(.6);
+        await _audioCache2.play(replic.replicPath);
+        await _audioPlayer1.setVolume(1);
       });
     }
+
+    _audioPlayer1.stop();
   }
 }

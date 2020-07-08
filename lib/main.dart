@@ -5,27 +5,24 @@ import 'package:midi_player/features/player/presentation/pages/player_page.dart'
 import 'package:midi_player/injection_container.dart';
 
 void main() {
-
   WidgetsFlutterBinding.ensureInitialized();
 
   initialiseDependecies();
 
   runApp(
     MultiBlocProvider(
-        providers: [
-          BlocProvider<PlayerBloc>(
-            create: (context) => sl<PlayerBloc>()..add(
-              const InitialisePlayer(
-                'assets/midi/midi.mid',
-                'assets/music/music.wav',
-                'music/music.wav'
-              ),
+      providers: [
+        BlocProvider<PlayerBloc>(
+          create: (context) => sl<PlayerBloc>()
+            ..add(
+              const InitialisePlayer('assets/midi/a.mid',
+                  'assets/music/music.wav', 'music/music.wav'),
             ),
-          ),
-        ],
-        child: MyApp(),
-      ),
-    );
+        ),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

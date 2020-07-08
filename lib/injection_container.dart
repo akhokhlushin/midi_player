@@ -1,4 +1,5 @@
 import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:get_it/get_it.dart';
 import 'package:midi_player/features/player/data/datasources/player_data_source.dart';
@@ -11,14 +12,14 @@ final GetIt sl = GetIt.instance;
 
 void initialiseDependecies() {
   // Device permission
-  sl.registerFactory(() => AudioCache());
+  sl.registerFactory(() => AudioPlayer());
   sl.registerSingleton(MidiParser());
 
   sl.registerSingleton(
     PlayerDataSourceImpl(
       sl<MidiParser>(),
-      sl<AudioCache>(),
-      sl<AudioCache>(),
+      sl<AudioPlayer>(),
+      sl<AudioPlayer>(),
     ),
   );
 
