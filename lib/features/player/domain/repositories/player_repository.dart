@@ -7,7 +7,6 @@ abstract class PlayerRepository {
   Future<Either<Failure, List<Duration>>> getTimeCodesFromMidiFile({
     @required String midiFilePath,
     @required String songPath,
-    @required String songP,
   });
 
   Future<Either<Failure, void>> playMusicAndReplics({

@@ -10,7 +10,6 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
-
   final GetTimeCodesFromMidiFile _getTimeCodesFromMidiFile;
   final PlayMusicAndReplics _playMusicAndReplics;
 
@@ -24,14 +23,12 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerEvent event,
   ) async* {
     if (event is InitialisePlayer) {
-
       yield PlayerLoading();
 
       final timeCodes = await _getTimeCodesFromMidiFile(
         GetTimeCodesFromMidiFileParams(
           midiFilePath: event.midiFilePath,
           songPath: event.songPath1,
-          songP: event.songPath2,
         ),
       );
 

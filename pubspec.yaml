@@ -23,7 +23,6 @@ dependencies:
   equatable:
   # Device
   audioplayers:
-  just_audio:
 
 dev_dependencies:
   flutter_test:
