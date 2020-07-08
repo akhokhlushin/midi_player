@@ -26,8 +26,13 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, List<Duration>>> getTimeCodesFromMidiFile({String midiFilePath}) async {
-    return _handleCalls<List<Duration>>(() => _dataSource.getTimeCodesFromMidiFile(midiFilePath: midiFilePath));
+  Future<Either<Failure, List<Duration>>> getTimeCodesFromMidiFile({String midiFilePath, String songPath, String songP}) async {
+    return _handleCalls<List<Duration>>(() => _dataSource.getTimeCodesFromMidiFile(
+        midiFilePath: midiFilePath,
+        songPath: songPath,
+        songP: songP,
+      ),
+    );
   }
 
   @override

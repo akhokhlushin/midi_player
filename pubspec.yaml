@@ -19,10 +19,11 @@ dependencies:
   # Dart support
   dartz:
   dart_midi:
-  get_it: 
-  equatable: 
-  # Device penetration
-  audioplayers: 
+  get_it:
+  equatable:
+  # Device
+  audioplayers:
+  just_audio:
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +34,12 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/midi/
+    - assets/music/
+    - assets/replics/
+    - assets/midi/midi.mid
+    - assets/music/music.wav
+    - assets/replics/replic.mp3
   # example:
   # fonts:
   #   - family: Schyler

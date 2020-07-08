@@ -8,3 +8,23 @@ class PlayerInitial extends PlayerState {
   @override
   List<Object> get props => [];
 }
+
+class PlayerFailure extends PlayerState {
+
+  final String message;
+
+  const PlayerFailure(this.message);
+
+  @override
+  List<Object> get props => [message];
+}
+
+class PlayerSuccess extends PlayerState {
+  @override
+  List<Object> get props => [];
+}
+
+class PlayerLoading extends PlayerState {
+  @override
+  List<Object> get props => [];
+}
