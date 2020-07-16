@@ -3,6 +3,7 @@ import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/features/player/domain/repositories/player_repository.dart';
+import 'package:rxdart/rxdart.dart';
 
 class PlayerRepositoryImpl extends PlayerRepository {
   final PlayerDataSource _dataSource;
@@ -35,9 +36,21 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, void>> playMusicAndReplics(
-      {List<Replic> replics, String songPath}) {
-    return _handleCalls<void>(() =>
-        _dataSource.playMusicAndReplics(replics: replics, songPath: songPath));
+  Future<Either<Failure, void>> playMusicAndReplics({
+    List<Replic> replics,
+    String songPath,
+    BehaviorSubject<double> volumeMusic,
+    BehaviorSubject<double> volumeReplic,
+    BehaviorSubject<double> replicGap,
+  }) {
+    return _handleCalls<void>(
+      () => _dataSource.playMusicAndReplics(
+        replics: replics,
+        songPath: songPath,
+        volumeMusic: volumeMusic,
+        replicGap: replicGap,
+        volumeReplic: volumeReplic,
+      ),
+    );
   }
 }

@@ -21,6 +21,7 @@ dependencies:
   dart_midi:
   get_it:
   equatable:
+  rxdart: 
   # Device
   audioplayers:
 
@@ -36,8 +37,8 @@ flutter:
     - assets/midi/
     - assets/music/
     - assets/replics/
-    - assets/midi/midi.mid
-    - assets/music/music.wav
+    - assets/midi/miidi.mid
+    - assets/music/muusic.wav
     - assets/replics/replic.mp3
   # example:
   # fonts:
