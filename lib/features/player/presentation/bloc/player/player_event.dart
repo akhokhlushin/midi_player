@@ -11,15 +11,18 @@ class InitialisePlayer extends PlayerEvent {
   final BehaviorSubject<double> volumeMusic;
   final BehaviorSubject<double> volumeReplic;
   final BehaviorSubject<double> replicGap;
+  final BehaviorSubject<int> timeBeforeStream;
+  final BehaviorSubject<int> timeAfterStream;
 
-  const InitialisePlayer({
-    this.midiFilePath,
-    this.songPath1,
-    this.songPath2,
-    this.volumeMusic,
-    this.volumeReplic,
-    this.replicGap,
-  });
+  const InitialisePlayer(
+      {this.midiFilePath,
+      this.songPath1,
+      this.songPath2,
+      this.volumeMusic,
+      this.volumeReplic,
+      this.replicGap,
+      this.timeAfterStream,
+      this.timeBeforeStream});
 
   @override
   List<Object> get props => [
@@ -29,5 +32,7 @@ class InitialisePlayer extends PlayerEvent {
         volumeMusic,
         volumeReplic,
         replicGap,
+        timeAfterStream,
+        timeBeforeStream,
       ];
 }

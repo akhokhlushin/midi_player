@@ -5,13 +5,17 @@ class ReplicModel extends Replic {
   final String replicPath;
   final Duration timeBefore;
   final Duration timeAfter;
+  final Duration replicDuration;
 
-  const ReplicModel(
-      {@required this.replicPath,
-      @required this.timeBefore,
-      @required this.timeAfter})
-      : super(
-            replicPath: replicPath,
-            timeBefore: timeBefore,
-            timeAfter: timeAfter);
+  const ReplicModel({
+    @required this.replicPath,
+    @required this.timeBefore,
+    @required this.timeAfter,
+    @required this.replicDuration,
+  }) : super(
+          replicPath: replicPath,
+          timeBefore: timeBefore,
+          timeAfter: timeAfter,
+          replicDuration: replicDuration,
+        );
 }

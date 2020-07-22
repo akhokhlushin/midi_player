@@ -25,9 +25,9 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, List<Duration>>> getTimeCodesFromMidiFile(
+  Future<Either<Failure, List<List<Duration>>>> getTimeCodesFromMidiFile(
       {String midiFilePath, String songPath}) async {
-    return _handleCalls<List<Duration>>(
+    return _handleCalls<List<List<Duration>>>(
       () => _dataSource.getTimeCodesFromMidiFile(
         midiFilePath: midiFilePath,
         songPath: songPath,
@@ -42,6 +42,8 @@ class PlayerRepositoryImpl extends PlayerRepository {
     BehaviorSubject<double> volumeMusic,
     BehaviorSubject<double> volumeReplic,
     BehaviorSubject<double> replicGap,
+    BehaviorSubject<int> timeBeforeStream,
+    BehaviorSubject<int> timeAfterStream,
   }) {
     return _handleCalls<void>(
       () => _dataSource.playMusicAndReplics(
@@ -50,6 +52,27 @@ class PlayerRepositoryImpl extends PlayerRepository {
         volumeMusic: volumeMusic,
         replicGap: replicGap,
         volumeReplic: volumeReplic,
+        timeAfterStream: timeAfterStream,
+        timeBeforeStream: timeBeforeStream,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<Duration>>> getReplicDurations(
+      {List<String> replicPaths}) {
+    return _handleCalls<List<Duration>>(
+      () => _dataSource.getReplicDurations(
+        replicPaths: replicPaths,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<String>>> getReplicsPath({int count}) {
+    return _handleCalls<List<String>>(
+      () => _dataSource.getReplicsPath(
+        count: count,
       ),
     );
   }

@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:midi_player/features/player/data/model/replic_model.dart';
+import 'package:midi_player/features/player/domain/usecases/get_replic_durations.dart';
+import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
 import 'package:midi_player/features/player/domain/usecases/get_time_codes_from_midi_file.dart';
 import 'package:midi_player/features/player/domain/usecases/play_music_and_replics.dart';
 import 'package:rxdart/rxdart.dart';
@@ -13,8 +15,11 @@ part 'player_state.dart';
 class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final GetTimeCodesFromMidiFile _getTimeCodesFromMidiFile;
   final PlayMusicAndReplics _playMusicAndReplics;
+  final GetReplicsPath _getReplicsPath;
+  final GetReplicsDurations _getReplicsDurations;
 
-  PlayerBloc(this._getTimeCodesFromMidiFile, this._playMusicAndReplics);
+  PlayerBloc(this._getTimeCodesFromMidiFile, this._playMusicAndReplics,
+      this._getReplicsPath, this._getReplicsDurations);
 
   @override
   PlayerState get initialState => PlayerInitial();
@@ -24,6 +29,8 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
     PlayerEvent event,
   ) async* {
     if (event is InitialisePlayer) {
+      yield PlayerLoading();
+
       final timeCodes = await _getTimeCodesFromMidiFile(
         GetTimeCodesFromMidiFileParams(
           midiFilePath: event.midiFilePath,
@@ -36,27 +43,45 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         (times) async {
           final List<ReplicModel> replics = [];
 
-          for (int i = 0; i < times.length - 1; i += 2) {
-            replics.add(
-              ReplicModel(
-                  replicPath: 'replics/replic.mp3',
-                  timeBefore: times[i],
-                  timeAfter: times[i + 1]),
-            );
-          }
-          final playMusicOrFailure = await _playMusicAndReplics(
-            PlayMusicAndReplicsParams(
-              replics: replics,
-              songPath: event.songPath2,
-              volumeMusic: event.volumeMusic,
-              volumeReplic: event.volumeReplic,
-              replicGap: event.replicGap,
-            ),
-          );
+          final pathsOrFailure = await _getReplicsPath(times.length);
 
-          return playMusicOrFailure.fold(
+          return await pathsOrFailure.fold(
             (failure) => PlayerFailure(failure.message),
-            (success) => PlayerInitial(),
+            (paths) async {
+              final durationsOrFailure = await _getReplicsDurations(paths);
+
+              return await durationsOrFailure.fold(
+                (failure) => PlayerFailure(failure.message),
+                (durations) async {
+                  final List<ReplicModel> replics = List.generate(
+                    durations.length,
+                    (index) => ReplicModel(
+                      replicPath: paths[index],
+                      timeBefore: times[index][0],
+                      timeAfter: times[index][1],
+                      replicDuration: durations[index],
+                    ),
+                  );
+
+                  final playOrFailure = await _playMusicAndReplics(
+                    PlayMusicAndReplicsParams(
+                      replics: replics,
+                      songPath: event.songPath2,
+                      volumeMusic: event.volumeMusic,
+                      volumeReplic: event.volumeReplic,
+                      replicGap: event.replicGap,
+                      timeAfterStream: event.timeAfterStream,
+                      timeBeforeStream: event.timeBeforeStream,
+                    ),
+                  );
+
+                  return playOrFailure.fold(
+                    (failure) => PlayerFailure(failure.message),
+                    (success) => PlayerInitial(),
+                  );
+                },
+              );
+            },
           );
         },
       );

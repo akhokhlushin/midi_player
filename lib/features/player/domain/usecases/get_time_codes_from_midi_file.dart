@@ -4,13 +4,13 @@ import 'package:midi_player/core/usecase.dart';
 import 'package:midi_player/features/player/domain/repositories/player_repository.dart';
 
 class GetTimeCodesFromMidiFile
-    extends UseCase<List<Duration>, GetTimeCodesFromMidiFileParams> {
+    extends UseCase<List<List<Duration>>, GetTimeCodesFromMidiFileParams> {
   final PlayerRepository _repository;
 
   GetTimeCodesFromMidiFile(this._repository);
 
   @override
-  Future<Either<Failure, List<Duration>>> call(
+  Future<Either<Failure, List<List<Duration>>>> call(
       GetTimeCodesFromMidiFileParams params) {
     return _repository.getTimeCodesFromMidiFile(
         midiFilePath: params.midiFilePath, songPath: params.songPath);

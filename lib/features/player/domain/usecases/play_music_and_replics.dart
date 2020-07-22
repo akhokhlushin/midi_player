@@ -19,6 +19,8 @@ class PlayMusicAndReplics extends UseCase<void, PlayMusicAndReplicsParams> {
       volumeMusic: params.volumeMusic,
       volumeReplic: params.volumeReplic,
       replicGap: params.replicGap,
+      timeAfterStream: params.timeAfterStream,
+      timeBeforeStream: params.timeBeforeStream,
     );
   }
 }
@@ -29,6 +31,8 @@ class PlayMusicAndReplicsParams {
   final BehaviorSubject<double> volumeMusic;
   final BehaviorSubject<double> volumeReplic;
   final BehaviorSubject<double> replicGap;
+  final BehaviorSubject<int> timeBeforeStream;
+  final BehaviorSubject<int> timeAfterStream;
 
   PlayMusicAndReplicsParams({
     @required this.replics,
@@ -36,5 +40,7 @@ class PlayMusicAndReplicsParams {
     @required this.volumeMusic,
     @required this.volumeReplic,
     @required this.replicGap,
+    @required this.timeAfterStream,
+    @required this.timeBeforeStream,
   });
 }
