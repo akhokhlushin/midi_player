@@ -62,9 +62,9 @@ class _PlayerPageState extends State<PlayerPage> {
                   onPressed: () {
                     BlocProvider.of<PlayerBloc>(context).add(
                       InitialisePlayer(
-                        midiFilePath: 'assets/midi/miiidi.mid',
-                        songPath2: 'assets/music/music.wav',
-                        songPath1: 'music/music.wav',
+                        midiFilePath: midiFilePath,
+                        songPath2: songPath2,
+                        songPath1: songPath1,
                         volumeMusic: volumeMusicStream,
                         volumeReplic: volumeReplicStream,
                         replicGap: replicGapStream,
