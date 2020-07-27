@@ -4,35 +4,41 @@ abstract class PlayerEvent extends Equatable {
   const PlayerEvent();
 }
 
-class InitialisePlayer extends PlayerEvent {
-  final String midiFilePath;
-  final String songPath1;
-  final String songPath2;
+class Play extends PlayerEvent {
   final BehaviorSubject<double> volumeMusic;
   final BehaviorSubject<double> volumeReplic;
-  final BehaviorSubject<double> replicGap;
-  final BehaviorSubject<int> timeBeforeStream;
-  final BehaviorSubject<int> timeAfterStream;
+  final BehaviorSubject<int> replicGap;
+  final BehaviorSubject<bool> player;
+  final List<Replic> replics;
+  final String songPath;
 
-  const InitialisePlayer(
-      {this.midiFilePath,
-      this.songPath1,
-      this.songPath2,
-      this.volumeMusic,
-      this.volumeReplic,
-      this.replicGap,
-      this.timeAfterStream,
-      this.timeBeforeStream});
+  const Play({
+    this.volumeMusic,
+    this.volumeReplic,
+    this.replicGap,
+    this.replics,
+    this.songPath,
+    this.player,
+  });
 
   @override
   List<Object> get props => [
-        midiFilePath,
-        songPath1,
-        songPath2,
         volumeMusic,
         volumeReplic,
         replicGap,
-        timeAfterStream,
-        timeBeforeStream,
+        replics,
+        songPath,
+        player,
       ];
+}
+
+class PauseEvent extends PlayerEvent {
+  final BehaviorSubject<bool> player;
+
+  const PauseEvent({
+    this.player,
+  });
+
+  @override
+  List<Object> get props => [player];
 }

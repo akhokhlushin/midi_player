@@ -25,55 +25,54 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, List<List<Duration>>>> getTimeCodesFromMidiFile(
-      {String midiFilePath, String songPath}) async {
-    return _handleCalls<List<List<Duration>>>(
-      () => _dataSource.getTimeCodesFromMidiFile(
-        midiFilePath: midiFilePath,
-        songPath: songPath,
-      ),
-    );
-  }
-
-  @override
-  Future<Either<Failure, void>> playMusicAndReplics({
-    List<Replic> replics,
+  Future<Either<Failure, void>> playMusic({
     String songPath,
     BehaviorSubject<double> volumeMusic,
-    BehaviorSubject<double> volumeReplic,
-    BehaviorSubject<double> replicGap,
-    BehaviorSubject<int> timeBeforeStream,
-    BehaviorSubject<int> timeAfterStream,
   }) {
     return _handleCalls<void>(
-      () => _dataSource.playMusicAndReplics(
-        replics: replics,
+      () => _dataSource.playMusic(
         songPath: songPath,
         volumeMusic: volumeMusic,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> pause({
+    BehaviorSubject<bool> playButton,
+  }) {
+    return _handleCalls<void>(
+      () => _dataSource.pause(
+        playButton: playButton,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> playReplics({
+    List<Replic> replics,
+    BehaviorSubject<double> volumeReplic,
+    BehaviorSubject<int> replicGap,
+    BehaviorSubject<bool> playButton,
+  }) async {
+    try {
+      final result = await _dataSource.playReplics(
         replicGap: replicGap,
+        replics: replics,
+        playButton: playButton,
         volumeReplic: volumeReplic,
-        timeAfterStream: timeAfterStream,
-        timeBeforeStream: timeBeforeStream,
-      ),
-    );
-  }
+      );
 
-  @override
-  Future<Either<Failure, List<Duration>>> getReplicDurations(
-      {List<String> replicPaths}) {
-    return _handleCalls<List<Duration>>(
-      () => _dataSource.getReplicDurations(
-        replicPaths: replicPaths,
-      ),
-    );
-  }
-
-  @override
-  Future<Either<Failure, List<String>>> getReplicsPath({int count}) {
-    return _handleCalls<List<String>>(
-      () => _dataSource.getReplicsPath(
-        count: count,
-      ),
-    );
+      return Right(result);
+    } catch (e) {
+      if (e == 'stop') {
+        return const Right(null);
+      }
+      return Left(
+        Failure(
+          message: 'Something went wrong! $e',
+        ),
+      );
+    }
   }
 }

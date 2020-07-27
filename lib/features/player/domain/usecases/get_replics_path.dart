@@ -1,10 +1,10 @@
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/core/usecase.dart';
-import 'package:midi_player/features/player/domain/repositories/player_repository.dart';
+import 'package:midi_player/features/player/domain/repositories/midi_repository.dart';
 
 class GetReplicsPath extends UseCase<List<String>, int> {
-  final PlayerRepository _repository;
+  final MidiRepository _repository;
 
   GetReplicsPath(this._repository);
 

@@ -5,26 +5,19 @@ import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerRepository {
-  Future<Either<Failure, List<List<Duration>>>> getTimeCodesFromMidiFile({
-    @required String midiFilePath,
-    @required String songPath,
-  });
-
-  Future<Either<Failure, List<String>>> getReplicsPath({
-    @required int count,
-  });
-
-  Future<Either<Failure, List<Duration>>> getReplicDurations({
-    @required List<String> replicPaths,
-  });
-
-  Future<Either<Failure, void>> playMusicAndReplics({
-    @required List<Replic> replics,
+  Future<Either<Failure, void>> playMusic({
     @required String songPath,
     @required BehaviorSubject<double> volumeMusic,
+  });
+
+  Future<Either<Failure, void>> playReplics({
+    @required List<Replic> replics,
     @required BehaviorSubject<double> volumeReplic,
-    @required BehaviorSubject<double> replicGap,
-    @required BehaviorSubject<int> timeBeforeStream,
-    @required BehaviorSubject<int> timeAfterStream,
+    @required BehaviorSubject<int> replicGap,
+    @required BehaviorSubject<bool> playButton,
+  });
+
+  Future<Either<Failure, void>> pause({
+    @required BehaviorSubject<bool> playButton,
   });
 }
