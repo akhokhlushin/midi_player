@@ -11,6 +11,7 @@ import 'package:midi_player/features/player/domain/usecases/get_time_codes_from_
 import 'package:midi_player/features/player/domain/usecases/pause.dart';
 import 'package:midi_player/features/player/domain/usecases/play_music.dart';
 import 'package:midi_player/features/player/domain/usecases/play_replics.dart';
+import 'package:midi_player/features/player/presentation/bloc/pause/pause_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:just_audio/just_audio.dart' as prefix;
 
@@ -62,6 +63,11 @@ void initialiseDependecies() {
     PlayerBloc(
       sl<PlayMusic>(),
       sl<PlayReplics>(),
+    ),
+  );
+
+  sl.registerSingleton(
+    PauseBloc(
       sl<Pause>(),
     ),
   );

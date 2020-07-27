@@ -46,7 +46,7 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     String songPath,
     BehaviorSubject<double> volumeMusic,
   }) async {
-    final streamMusic = volumeMusic.stream.listen((value) {
+    volumeMusic.stream.listen((value) {
       _audioPlayer1.setVolume(value);
     });
 
@@ -55,7 +55,6 @@ class PlayerDataSourceImpl extends PlayerDataSource {
         _audioPlayer1.resume()
       else
         _audioCache1.play(songPath),
-      streamMusic.cancel(),
     ]);
   }
 
@@ -79,48 +78,45 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     BehaviorSubject<int> replicGap,
     BehaviorSubject<bool> playButton,
   }) async {
-    volumeReplic.stream.listen((value) {
-      _audioPlayer2.setVolume(value);
-    });
+    try {
+      volumeReplic.stream.listen((value) {
+        _audioPlayer2.setVolume(value);
+      });
 
-    playButton.listen((value) {
-      if (value) {
-        throw 'stop';
-      }
-    });
+      for (int i = 0; i < replics.length; i++) {
+        final replic = replics[i];
 
-    for (int i = 0; i < replics.length; i++) {
-      final replic = replics[i];
+        playButton.listen((value) {
+          if (value) {
+            throw 'stop';
+          }
+        });
 
-      await _audioCache2.load(replic.replicPath);
+        await _audioCache2.load(replic.replicPath);
 
-      for (int count = 0; count <= replicGap.value; count++) {
-        if (count == replicGap.value) {
-          final stopwatch = Stopwatch();
+        for (int count = 0; count <= replicGap.value; count++) {
+          if (count == replicGap.value) {
+            await Future.delayed(replic.timeBefore);
 
-          stopwatch.start();
+            final volume = volumeReplic.value;
 
-          await Future.delayed(replic.timeBefore);
+            await _audioCache2.play(replic.replicPath);
+            await _audioPlayer2.setVolume(volume);
 
-          final volume = volumeReplic.value;
+            await Future.delayed(replic.timeAfter);
 
-          await _audioCache2.play(replic.replicPath);
-          await _audioPlayer2.setVolume(volume);
-
-          stopwatch.stop();
-
-          logger.d('Execution time: ${stopwatch.elapsed}');
-
-          await Future.delayed(
-              replic.timeAfter - (stopwatch.elapsed - replic.timeBefore));
-
-          break;
-        } else {
-          logger.d(count);
-          await Future.delayed(replic.timeBefore);
-          await Future.delayed(replic.replicDuration);
-          await Future.delayed(replic.timeAfter);
+            break;
+          } else {
+            logger.d(count);
+            await Future.delayed(replic.timeBefore);
+            await Future.delayed(replic.replicDuration);
+            await Future.delayed(replic.timeAfter);
+          }
         }
+      }
+    } catch (e) {
+      if (e == 'stop') {
+        return;
       }
     }
   }

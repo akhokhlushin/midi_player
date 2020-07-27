@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
+import 'package:midi_player/features/player/presentation/bloc/pause/pause_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -163,10 +164,8 @@ class _PlayerPageState extends State<PlayerPage> {
                               return IconButton(
                                 icon: Icon(Icons.pause),
                                 onPressed: () {
-                                  BlocProvider.of<PlayerBloc>(context).add(
-                                    PauseEvent(
-                                      player: playButtonStream,
-                                    ),
+                                  BlocProvider.of<PauseBloc>(context).add(
+                                    PauseE(playButtonStream),
                                   );
                                 },
                               );
