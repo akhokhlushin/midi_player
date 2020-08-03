@@ -86,11 +86,11 @@ class PlayerDataSourceImpl extends PlayerDataSource {
       for (int i = 0; i < replics.length; i++) {
         final replic = replics[i];
 
-        playButton.listen((value) {
-          if (value) {
-            throw 'stop';
-          }
-        });
+        // playButton.listen((value) {
+        //   if (value) {
+        //     throw 'stop';
+        //   }
+        // });
 
         await _audioCache2.load(replic.replicPath);
 
