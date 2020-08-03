@@ -65,9 +65,6 @@ class PlayerRepositoryImpl extends PlayerRepository {
 
       return Right(result);
     } catch (e) {
-      if (e == 'stop') {
-        return const Right(null);
-      }
       return Left(
         Failure(
           message: 'Something went wrong! $e',
