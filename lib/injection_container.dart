@@ -1,10 +1,11 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:get_it/get_it.dart';
-import 'package:midi_player/features/player/data/datasources/midi_data_source.dart';
+import 'package:midi_player/features/player/data/datasources/audio_data_source.dart';
 import 'package:midi_player/features/player/data/datasources/player_data_source.dart';
-import 'package:midi_player/features/player/data/repositories/midi_repository_impl.dart';
+import 'package:midi_player/features/player/data/repositories/audio_data_repository_impl.dart';
 import 'package:midi_player/features/player/data/repositories/player_repository_impl.dart';
+import 'package:midi_player/features/player/domain/usecases/get_bit_amount.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replic_durations.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
 import 'package:midi_player/features/player/domain/usecases/get_time_codes_from_midi_file.dart';
@@ -33,7 +34,7 @@ void initialiseDependecies() {
   );
 
   sl.registerSingleton(
-    MidiDataSourceImpl(
+    AudioDataSourceImpl(
       sl<MidiParser>(),
       sl<prefix.AudioPlayer>(),
     ),
@@ -44,7 +45,7 @@ void initialiseDependecies() {
   );
 
   sl.registerSingleton(
-    MidiRepositoryImpl(sl<MidiDataSourceImpl>()),
+    AudioDataRepositoryImpl(sl<AudioDataSourceImpl>()),
   );
 
   sl.registerSingleton(PlayMusic(sl<PlayerRepositoryImpl>()));
@@ -53,11 +54,13 @@ void initialiseDependecies() {
 
   sl.registerSingleton(Pause(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(GetTimeCodesFromMidiFile(sl<MidiRepositoryImpl>()));
+  sl.registerSingleton(GetTimeCodesFromMidiFile(sl<AudioDataRepositoryImpl>()));
 
-  sl.registerSingleton(GetReplicsPath(sl<MidiRepositoryImpl>()));
+  sl.registerSingleton(GetReplicsPath(sl<AudioDataRepositoryImpl>()));
 
-  sl.registerSingleton(GetReplicsDurations(sl<MidiRepositoryImpl>()));
+  sl.registerSingleton(GetReplicsDurations(sl<AudioDataRepositoryImpl>()));
+
+  sl.registerSingleton(GetBitAmount(sl<AudioDataRepositoryImpl>()));
 
   sl.registerSingleton(
     PlayerBloc(
@@ -77,6 +80,7 @@ void initialiseDependecies() {
       sl<GetReplicsDurations>(),
       sl<GetReplicsPath>(),
       sl<GetTimeCodesFromMidiFile>(),
+      sl<GetBitAmount>(),
     ),
   );
 }

@@ -11,6 +11,7 @@ abstract class PlayerDataSource {
   Future<void> playMusic({
     String songPath,
     BehaviorSubject<double> volumeMusic,
+    BehaviorSubject<bool> playButton,
   });
 
   // Wait timeBefore, plays replic and waits timeAfter
@@ -45,7 +46,10 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   Future<void> playMusic({
     String songPath,
     BehaviorSubject<double> volumeMusic,
+    BehaviorSubject<bool> playButton,
   }) async {
+    _audioPlayer1.stop();
+
     volumeMusic.stream.listen((value) {
       _audioPlayer1.setVolume(value);
     });
@@ -62,7 +66,7 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   Future<void> pause({
     BehaviorSubject<bool> playButton,
   }) {
-    playButton.add(true);
+    playButton.add(!playButton.value);
 
     return Future.wait([
       _audioPlayer1.pause(),
@@ -71,6 +75,8 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     ]);
   }
 
+  int lastReplicCount = 0;
+
   @override
   Future<void> playReplics({
     List<Replic> replics,
@@ -78,40 +84,75 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     BehaviorSubject<int> replicGap,
     BehaviorSubject<bool> playButton,
   }) async {
+    _audioPlayer2.stop();
+
     volumeReplic.stream.listen((value) {
       _audioPlayer2.setVolume(value);
     });
 
-    for (int i = 0; i < replics.length; i++) {
+    playButton.add(!playButton.value);
+
+    for (int i = lastReplicCount; i < replics.length; i++) {
       final replic = replics[i];
 
-      // playButton.listen((value) {
-      //   if (value) {
-      //     throw 'stop';
-      //   }
-      // });
+      lastReplicCount = i;
 
       await _audioCache2.load(replic.replicPath);
 
+      int replicIndex = 0;
+
       for (int count = 0; count <= replicGap.value; count++) {
+        final replicCurrentIndex = i + replicIndex < replics.length
+            ? i + replicIndex
+            : (replics.length * (replics.length ~/ (i + replicIndex))) -
+                (i + replicIndex);
+
+        final currentReplic = replics[replicCurrentIndex];
+
         if (count == replicGap.value) {
-          await Future.delayed(replic.timeBefore);
+          if (playButton.value) {
+            break;
+          }
+
+          await Future.delayed(currentReplic.timeBefore);
 
           final volume = volumeReplic.value;
 
-          await _audioCache2.play(replic.replicPath);
+          if (_audioPlayer2.state == AudioPlayerState.PLAYING) {
+            _audioPlayer2.resume();
+          } else {
+            await _audioCache2.play(replic.replicPath);
+          }
           await _audioPlayer2.setVolume(volume);
 
-          await Future.delayed(replic.timeAfter);
+          await Future.delayed(currentReplic.timeAfter);
+
+          replicIndex = 0;
 
           break;
         } else {
+          if (playButton.value) {
+            break;
+          }
           logger.d(count);
-          await Future.delayed(replic.timeBefore);
-          await Future.delayed(replic.replicDuration);
-          await Future.delayed(replic.timeAfter);
+          await Future.delayed(currentReplic.timeBefore);
+          await Future.delayed(currentReplic.timeAfter);
+
+          replicIndex++;
+          if (playButton.value) {
+            break;
+          }
         }
       }
+      if (playButton.value) {
+        break;
+      }
+    }
+
+    playButton.add(true);
+
+    if (_audioPlayer1.state == AudioPlayerState.PLAYING) {
+      _audioPlayer1.stop();
     }
   }
 }

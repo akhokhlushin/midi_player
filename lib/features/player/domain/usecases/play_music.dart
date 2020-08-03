@@ -15,6 +15,7 @@ class PlayMusic extends UseCase<void, PlayMusicParams> {
     return _repository.playMusic(
       songPath: params.songPath,
       volumeMusic: params.volumeMusic,
+      playButton: params.player,
     );
   }
 }
@@ -25,7 +26,7 @@ class PlayMusicParams {
   final BehaviorSubject<double> volumeMusic;
   // final BehaviorSubject<double> volumeReplic;
   // final BehaviorSubject<double> replicGap;
-  // final BehaviorSubject<bool> player;
+  final BehaviorSubject<bool> player;
 
   PlayMusicParams({
     // @required this.replics,
@@ -33,6 +34,6 @@ class PlayMusicParams {
     @required this.volumeMusic,
     // @required this.volumeReplic,
     // @required this.replicGap,
-    // @required this.player,
+    @required this.player,
   });
 }

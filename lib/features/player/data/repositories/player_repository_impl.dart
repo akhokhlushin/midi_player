@@ -25,14 +25,15 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, void>> playMusic({
-    String songPath,
-    BehaviorSubject<double> volumeMusic,
-  }) {
+  Future<Either<Failure, void>> playMusic(
+      {String songPath,
+      BehaviorSubject<double> volumeMusic,
+      BehaviorSubject<bool> playButton}) {
     return _handleCalls<void>(
       () => _dataSource.playMusic(
         songPath: songPath,
         volumeMusic: volumeMusic,
+        playButton: playButton,
       ),
     );
   }
@@ -65,9 +66,6 @@ class PlayerRepositoryImpl extends PlayerRepository {
 
       return Right(result);
     } catch (e) {
-      if (e == 'stop') {
-        return const Right(null);
-      }
       return Left(
         Failure(
           message: 'Something went wrong! $e',

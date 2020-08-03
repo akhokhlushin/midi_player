@@ -8,6 +8,7 @@ abstract class PlayerRepository {
   Future<Either<Failure, void>> playMusic({
     @required String songPath,
     @required BehaviorSubject<double> volumeMusic,
+    @required BehaviorSubject<bool> playButton,
   });
 
   Future<Either<Failure, void>> playReplics({

@@ -20,7 +20,7 @@ void main() {
         ),
         BlocProvider<MidiBloc>(
           create: (context) =>
-              sl<MidiBloc>()..add(InitialiseMidi(midiFilePath)),
+              sl<MidiBloc>()..add(const InitialiseMidi(midiFilePath)),
         ),
         BlocProvider<PauseBloc>(
           create: (context) => sl<PauseBloc>(),

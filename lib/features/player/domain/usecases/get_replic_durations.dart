@@ -1,10 +1,10 @@
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/core/usecase.dart';
-import 'package:midi_player/features/player/domain/repositories/midi_repository.dart';
+import 'package:midi_player/features/player/domain/repositories/audio_data_repository.dart';
 
 class GetReplicsDurations extends UseCase<List<Duration>, List<String>> {
-  final MidiRepository _repository;
+  final AudioDataRepository _repository;
 
   GetReplicsDurations(this._repository);
 

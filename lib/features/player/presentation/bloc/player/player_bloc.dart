@@ -31,6 +31,7 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         PlayMusicParams(
           songPath: event.songPath,
           volumeMusic: event.volumeMusic,
+          player: event.player,
         ),
       );
       await _playReplics(

@@ -26,6 +26,7 @@ dependencies:
   # Device
   audioplayers:
   just_audio:
+  # flutter_ffmpeg:
 
 dev_dependencies:
   flutter_test:
@@ -39,9 +40,6 @@ flutter:
     - assets/midi/
     - assets/music/
     - assets/replics/
-    - assets/midi/miidi.mid
-    - assets/music/muusic.wav
-    - assets/replics/replic.mp3
   # example:
   # fonts:
   #   - family: Schyler

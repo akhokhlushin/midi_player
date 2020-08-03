@@ -24,10 +24,10 @@ class MidiFailure extends MidiState {
 }
 
 class MidiSuccess extends MidiState {
-  final List<Replic> replics;
+  final Music music;
 
-  const MidiSuccess(this.replics);
+  const MidiSuccess(this.music);
 
   @override
-  List<Object> get props => [replics];
+  List<Object> get props => [music];
 }
