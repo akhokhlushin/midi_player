@@ -78,45 +78,39 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     BehaviorSubject<int> replicGap,
     BehaviorSubject<bool> playButton,
   }) async {
-    try {
-      volumeReplic.stream.listen((value) {
-        _audioPlayer2.setVolume(value);
-      });
+    volumeReplic.stream.listen((value) {
+      _audioPlayer2.setVolume(value);
+    });
 
-      for (int i = 0; i < replics.length; i++) {
-        final replic = replics[i];
+    for (int i = 0; i < replics.length; i++) {
+      final replic = replics[i];
 
-        // playButton.listen((value) {
-        //   if (value) {
-        //     throw 'stop';
-        //   }
-        // });
+      // playButton.listen((value) {
+      //   if (value) {
+      //     throw 'stop';
+      //   }
+      // });
 
-        await _audioCache2.load(replic.replicPath);
+      await _audioCache2.load(replic.replicPath);
 
-        for (int count = 0; count <= replicGap.value; count++) {
-          if (count == replicGap.value) {
-            await Future.delayed(replic.timeBefore);
+      for (int count = 0; count <= replicGap.value; count++) {
+        if (count == replicGap.value) {
+          await Future.delayed(replic.timeBefore);
 
-            final volume = volumeReplic.value;
+          final volume = volumeReplic.value;
 
-            await _audioCache2.play(replic.replicPath);
-            await _audioPlayer2.setVolume(volume);
+          await _audioCache2.play(replic.replicPath);
+          await _audioPlayer2.setVolume(volume);
 
-            await Future.delayed(replic.timeAfter);
+          await Future.delayed(replic.timeAfter);
 
-            break;
-          } else {
-            logger.d(count);
-            await Future.delayed(replic.timeBefore);
-            await Future.delayed(replic.replicDuration);
-            await Future.delayed(replic.timeAfter);
-          }
+          break;
+        } else {
+          logger.d(count);
+          await Future.delayed(replic.timeBefore);
+          await Future.delayed(replic.replicDuration);
+          await Future.delayed(replic.timeAfter);
         }
-      }
-    } catch (e) {
-      if (e == 'stop') {
-        return;
       }
     }
   }
