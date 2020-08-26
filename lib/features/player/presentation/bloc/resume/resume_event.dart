@@ -1,10 +1,13 @@
-part of 'player_bloc.dart';
+part of 'resume_bloc.dart';
 
-abstract class PlayerEvent extends Equatable {
-  const PlayerEvent();
+abstract class ResumeEvent extends Equatable {
+  const ResumeEvent();
+
+  @override
+  List<Object> get props => [];
 }
 
-class PlayE extends PlayerEvent {
+class Restart extends ResumeEvent {
   final BehaviorSubject<double> volumeMusic;
   final BehaviorSubject<double> volumeReplic;
   final BehaviorSubject<int> replicGap;
@@ -13,7 +16,7 @@ class PlayE extends PlayerEvent {
   final String songPath;
   final Stream<MidiEventEntity> onMidiEvents;
 
-  const PlayE({
+  const Restart({
     this.volumeMusic,
     this.volumeReplic,
     this.replicGap,
@@ -31,5 +34,6 @@ class PlayE extends PlayerEvent {
         replics,
         songPath,
         player,
+        onMidiEvents,
       ];
 }

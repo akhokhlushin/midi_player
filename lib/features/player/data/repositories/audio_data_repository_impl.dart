@@ -1,7 +1,10 @@
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/features/player/data/datasources/audio_data_source.dart';
+import 'package:midi_player/features/player/domain/entities/midi_event.dart';
+import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:midi_player/features/player/domain/repositories/audio_data_repository.dart';
+import 'package:rxdart/rxdart.dart';
 
 class AudioDataRepositoryImpl extends AudioDataRepository {
   final AudioDataSource _dataSource;
@@ -23,34 +26,31 @@ class AudioDataRepositoryImpl extends AudioDataRepository {
   }
 
   @override
-  Future<Either<Failure, List<Duration>>> getReplicDurations(
-      {List<String> replicPaths}) {
-    return _handleCalls<List<Duration>>(
-      () => _dataSource.getReplicDurations(replicPaths: replicPaths),
+  Future<Either<Failure, Music>> getMusic({int count, String midiFilePath}) {
+    return _handleCalls<Music>(
+      () => _dataSource.getMusic(count: count, midiFilePath: midiFilePath),
     );
   }
 
   @override
-  Future<Either<Failure, List<String>>> getReplicsPath({int count}) {
-    return _handleCalls<List<String>>(
-      () => _dataSource.getReplicsPath(count: count),
-    );
-  }
-
-  @override
-  Future<Either<Failure, List<List<Duration>>>> getTimeCodesFromMidiFile(
-      {String midiFilePath}) {
-    return _handleCalls<List<List<Duration>>>(
-      () => _dataSource.getTimeCodesFromMidiFile(
+  Future<Either<Failure, Stream<MidiEventEntity>>> getMidiEventsStream({
+    String midiFilePath,
+    BehaviorSubject<int> replicGap,
+    BehaviorSubject<bool> playButton,
+  }) {
+    return _handleCalls<Stream<MidiEventEntity>>(
+      () => _dataSource.getMidiEventsStream(
         midiFilePath: midiFilePath,
+        replicGap: replicGap,
+        playButton: playButton,
       ),
     );
   }
 
   @override
-  Future<Either<Failure, int>> getBitAmount({String midiFilePath}) {
+  Future<Either<Failure, int>> getEventsAmount({String midiFilePath}) {
     return _handleCalls<int>(
-      () => _dataSource.getBitAmount(
+      () => _dataSource.getEventsAmount(
         midiFilePath: midiFilePath,
       ),
     );

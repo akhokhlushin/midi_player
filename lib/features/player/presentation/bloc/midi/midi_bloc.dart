@@ -2,24 +2,24 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:midi_player/core/constants.dart';
+import 'package:midi_player/features/player/domain/entities/midi_event.dart';
 import 'package:midi_player/features/player/domain/entities/music.dart';
-import 'package:midi_player/features/player/domain/entities/replic.dart';
-import 'package:midi_player/features/player/domain/usecases/get_bit_amount.dart';
-import 'package:midi_player/features/player/domain/usecases/get_replic_durations.dart';
+import 'package:midi_player/features/player/domain/usecases/get_events_amount.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
-import 'package:midi_player/features/player/domain/usecases/get_time_codes_from_midi_file.dart';
+import 'package:midi_player/features/player/domain/usecases/get_midi_events_stream.dart';
+import 'package:rxdart/subjects.dart';
 
 part 'midi_event.dart';
 part 'midi_state.dart';
 
 class MidiBloc extends Bloc<MidiEvent, MidiState> {
-  final GetReplicsDurations _getReplicsDurations;
-  final GetReplicsPath _getReplicsPath;
-  final GetTimeCodesFromMidiFile _getTimeCodesFromMidiFile;
-  final GetBitAmount _getBitAmount;
+  final GetMidiEventsAmount _getMidiEventsAmount;
+  final GetMusic _getMusic;
+  final GetMidiEventsStream _getMidiEventsStream;
 
-  MidiBloc(this._getReplicsDurations, this._getReplicsPath,
-      this._getTimeCodesFromMidiFile, this._getBitAmount);
+  MidiBloc(
+      this._getMusic, this._getMidiEventsStream, this._getMidiEventsAmount);
 
   @override
   MidiState get initialState => MidiInitial();
@@ -31,40 +31,32 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
     if (event is InitialiseMidi) {
       yield MidiLoading();
 
-      final timeCodes = await _getTimeCodesFromMidiFile(event.midiFilePath);
+      final eventsAmountOrFailure = await _getMidiEventsAmount(midiFilePath);
 
-      yield await timeCodes.fold(
+      yield await eventsAmountOrFailure.fold(
         (failure) => MidiFailure(failure.message),
-        (times) async {
-          final pathsOrFailure = await _getReplicsPath(times.length);
+        (amount) async {
+          final musicOrFailure = await _getMusic(
+            GetMusicParams(
+              count: amount,
+              midiFilePath: midiFilePath,
+            ),
+          );
 
-          return await pathsOrFailure.fold(
+          return await musicOrFailure.fold(
             (failure) => MidiFailure(failure.message),
-            (paths) async {
-              final durationsOrFailure = await _getReplicsDurations(paths);
+            (music) async {
+              final streamOrFailure = await _getMidiEventsStream(
+                GetMidiEventsStreamParams(
+                  midiFilePath: midiFilePath,
+                  onReplicGapChange: event.replicGap,
+                  playButton: event.playButton,
+                ),
+              );
 
-              return await durationsOrFailure.fold(
+              return await streamOrFailure.fold(
                 (failure) => MidiFailure(failure.message),
-                (durations) async {
-                  final bitsOrFailure = await _getBitAmount(event.midiFilePath);
-
-                  return bitsOrFailure.fold(
-                      (failure) => MidiFailure(failure.message), (bitAmount) {
-                    final List<Replic> replics = List.generate(
-                      durations.length,
-                      (index) => Replic(
-                        replicPath: paths[index],
-                        timeBefore: times[index][0],
-                        timeAfter: times[index][1],
-                        replicDuration: durations[index],
-                      ),
-                    );
-
-                    final music = Music(bitAmount: bitAmount, replics: replics);
-
-                    return MidiSuccess(music);
-                  });
-                },
+                (stream) => MidiSuccess(music, stream),
               );
             },
           );

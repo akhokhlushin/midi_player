@@ -1,17 +1,24 @@
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/core/usecase.dart';
+import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:midi_player/features/player/domain/repositories/audio_data_repository.dart';
 
-class GetReplicsPath extends UseCase<List<String>, int> {
+class GetMusic extends UseCase<Music, GetMusicParams> {
   final AudioDataRepository _repository;
 
-  GetReplicsPath(this._repository);
+  GetMusic(this._repository);
 
   @override
-  Future<Either<Failure, List<String>>> call(int params) {
-    return _repository.getReplicsPath(count: params);
+  Future<Either<Failure, Music>> call(GetMusicParams params) {
+    return _repository.getMusic(
+        count: params.count, midiFilePath: params.midiFilePath);
   }
 }
 
-class NoParams {}
+class GetMusicParams {
+  final int count;
+  final String midiFilePath;
+
+  GetMusicParams({this.count, this.midiFilePath});
+}

@@ -25,9 +25,10 @@ class MidiFailure extends MidiState {
 
 class MidiSuccess extends MidiState {
   final Music music;
+  final Stream<MidiEventEntity> onMidiEvent;
 
-  const MidiSuccess(this.music);
+  const MidiSuccess(this.music, this.onMidiEvent);
 
   @override
-  List<Object> get props => [music];
+  List<Object> get props => [music, onMidiEvent];
 }

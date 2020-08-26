@@ -12,10 +12,3 @@ class PauseE extends PauseEvent {
   @override
   List<Object> get props => [pause];
 }
-
-class Restart extends PauseEvent {
-  const Restart();
-
-  @override
-  List<Object> get props => [];
-}
