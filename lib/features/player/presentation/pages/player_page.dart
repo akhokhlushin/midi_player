@@ -88,7 +88,6 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     final AnimationController animationController = AnimationController(
       vsync: this,
       value: 0,
-      upperBound: (size.width * 5) - 2,
     );
 
     return Scaffold(
@@ -103,8 +102,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                   _play(state);
 
                   animationController.animateTo(
-                    (size.width * 5) - 2,
-                    duration: _getTotalDuration(state.music.replics),
+                    1,
+                    duration: _getTotalDuration(state.music.replics) *
+                        (1 - animationController.value),
                   );
                 }
               },
@@ -149,17 +149,16 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
-                _pause();
-
                 _play(state);
 
                 animationController.animateTo(0.0, duration: Duration.zero);
 
                 animationController.animateTo(
-                  (size.width * 5) - 2,
+                  1,
                   duration: _getTotalDuration(
-                    state.music.replics,
-                  ),
+                        state.music.replics,
+                      ) *
+                      (1 - animationController.value),
                 );
               },
             ),
@@ -175,10 +174,11 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                           _resume(state);
 
                           animationController.animateTo(
-                            (size.width * 5) - 2,
+                            1,
                             duration: _getTotalDuration(
-                              state.music.replics,
-                            ),
+                                  state.music.replics,
+                                ) *
+                                (1 - animationController.value),
                           );
                         }
                       : () {
@@ -216,7 +216,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 animation: animationController,
                 builder: (context, child) {
                   return Positioned(
-                    left: animationController.value,
+                    left: animationController.value * ((size.width * 5) - 2),
                     child: Container(
                       width: 2,
                       height: 75,

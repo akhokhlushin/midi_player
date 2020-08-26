@@ -187,10 +187,6 @@ class PlayerDataSourceImpl extends PlayerDataSource {
         break;
       }
 
-      if (playButton.value) {
-        break;
-      }
-
       final volume = volumeReplic.value;
 
       await _audioCache2.play(replic.replicPath);

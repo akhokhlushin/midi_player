@@ -103,12 +103,13 @@ class AudioDataSourceImpl extends AudioDataSource {
     BehaviorSubject<int> replicGap,
     BehaviorSubject<bool> playButton,
   ) async* {
+    bool restart = true;
     for (int i = lastReplic; i < durations.length; i++) {
       if (playButton.value) {
         break;
       }
 
-      await Future.delayed((durations[i][0] * 1.025) * (replicGap.value + 1));
+      await Future.delayed((durations[i][0] * 1.015) * (replicGap.value + 1));
 
       if (playButton.value) {
         break;
@@ -120,14 +121,36 @@ class AudioDataSourceImpl extends AudioDataSource {
         break;
       }
 
-      await Future.delayed((durations[i][1] * 1.025) * (replicGap.value + 1));
+      await Future.delayed((durations[i][1] * 1.015) * (replicGap.value + 1));
 
       lastReplic = i;
 
       if (playButton.value) {
         break;
       }
+
+      if (i == durations.length - 1) {
+        restart = false;
+        lastReplic = 0;
+      }
     }
+
+    if (restart) {
+      await _waitForValueChange(playButton);
+      yield* _getOnEventStream(durations, replicGap, playButton);
+    }
+  }
+
+  Future<void> _waitForValueChange(BehaviorSubject<bool> playButton) async {
+    final Completer completer = Completer();
+
+    playButton.listen((value) {
+      if (!value) {
+        completer.complete();
+      }
+    });
+
+    return completer.future;
   }
 
   Future<List<Duration>> _getReplicDurations({List<String> replicPaths}) async {
