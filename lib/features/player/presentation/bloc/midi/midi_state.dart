@@ -23,6 +23,7 @@ class MidiFailure extends MidiState {
   List<Object> get props => [message];
 }
 
+@immutable
 class MidiSuccess extends MidiState {
   final Music music;
   final Stream<MidiEventEntity> onMidiEvent;

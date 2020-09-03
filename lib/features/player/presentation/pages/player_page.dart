@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/core/widgets/common_stream_builder.dart';
 import 'package:midi_player/core/widgets/void.dart';
-import 'package:midi_player/features/player/domain/entities/replic.dart';
+import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/pause/pause_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
@@ -28,9 +28,13 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
       BehaviorSubject<double>.seeded(_initialVolume);
   final BehaviorSubject<double> _volumeReplicStream =
       BehaviorSubject<double>.seeded(_initialVolume);
-  final BehaviorSubject<int> _replicGapStream = BehaviorSubject<int>.seeded(0);
+  final BehaviorSubject<int> _replicGapStream = BehaviorSubject<int>.seeded(1);
   final BehaviorSubject<bool> _playButtonStream =
-      BehaviorSubject<bool>.seeded(false);
+      BehaviorSubject<bool>.seeded(true);
+
+  AnimationController _animationController;
+
+  final int _view = 20;
 
   void _play(MidiSuccess state) {
     BlocProvider.of<PlayerBloc>(context).add(
@@ -42,6 +46,19 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
         volumeReplic: _volumeReplicStream,
         player: _playButtonStream,
         replicGap: _replicGapStream,
+      ),
+    );
+  }
+
+  void _refresh(MidiSuccess state) {
+    _playButtonStream.add(true);
+
+    _pause();
+
+    BlocProvider.of<MidiBloc>(context).add(
+      InitialiseMidi(
+        midiFilePath: midiFilePath,
+        playButton: _playButtonStream,
       ),
     );
   }
@@ -70,10 +87,14 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    _animationController = AnimationController(
+      vsync: this,
+      value: 0,
+    );
+
     BlocProvider.of<MidiBloc>(context).add(
       InitialiseMidi(
         midiFilePath: midiFilePath,
-        replicGap: _replicGapStream,
         playButton: _playButtonStream,
       ),
     );
@@ -85,11 +106,6 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    final AnimationController animationController = AnimationController(
-      vsync: this,
-      value: 0,
-    );
-
     return Scaffold(
       body: BlocBuilder<PlayerBloc, PlayerState>(
         builder: (context, state) {
@@ -99,13 +115,15 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             return BlocConsumer<MidiBloc, MidiState>(
               listener: (context, state) {
                 if (state is MidiSuccess) {
-                  _play(state);
-
-                  animationController.animateTo(
-                    1,
-                    duration: _getTotalDuration(state.music.replics) *
-                        (1 - animationController.value),
+                  WidgetsBinding.instance.addPostFrameCallback(
+                    (_) => _animationController.animateTo(
+                      1,
+                      duration: state.music.musicDuration *
+                          (1 - _animationController.value),
+                    ),
                   );
+
+                  _play(state);
                 }
               },
               builder: (context, state) {
@@ -116,7 +134,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 } else if (state is MidiFailure) {
                   return _buildMidiFailure(state, context);
                 } else if (state is MidiSuccess) {
-                  return _buildSuccess(state, animationController, size);
+                  return _buildSuccess(state, _animationController, size);
                 }
                 return const Void();
               },
@@ -149,17 +167,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
-                _play(state);
+                _refresh(state);
 
                 animationController.animateTo(0.0, duration: Duration.zero);
-
-                animationController.animateTo(
-                  1,
-                  duration: _getTotalDuration(
-                        state.music.replics,
-                      ) *
-                      (1 - animationController.value),
-                );
               },
             ),
             CommonStreamBuilder<bool>(
@@ -171,15 +181,13 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                       : const Icon(Icons.pause),
                   onPressed: value
                       ? () {
-                          _resume(state);
-
                           animationController.animateTo(
                             1,
-                            duration: _getTotalDuration(
-                                  state.music.replics,
-                                ) *
+                            duration: state.music.musicDuration *
                                 (1 - animationController.value),
                           );
+
+                          _resume(state);
                         }
                       : () {
                           _pause();
@@ -191,41 +199,63 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             ),
           ],
         ),
+        const SizedBox(
+          height: 20,
+        ),
+        const SizedBox(
+          height: 20,
+        ),
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Stack(
-            children: [
-              Row(
-                children: _getSongTrail(state.music.replics),
-              ),
-              Container(
-                width: size.width * 5,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: List<Widget>.generate(
-                    state.music.bitAmount,
-                    (index) => Container(
-                      height: 75,
-                      color: Colors.green,
-                      width: 1,
+          child: SizedBox(
+            width: size.width * _view,
+            height: 75,
+            child: Stack(
+              children: [
+                Container(
+                  width: size.width * _view,
+                  height: 75,
+                  color: Colors.red,
+                ),
+                CommonStreamBuilder<int>(
+                  stream: _replicGapStream,
+                  onHasData: (value) {
+                    return Stack(
+                      children: _getSongTrail(state.music),
+                    );
+                  },
+                ),
+                Container(
+                  width: size.width * _view,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: List<Widget>.generate(
+                      state.music.bitAmount,
+                      (index) => Container(
+                        height: 75,
+                        color: Colors.green,
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              AnimatedBuilder(
-                animation: animationController,
-                builder: (context, child) {
-                  return Positioned(
-                    left: animationController.value * ((size.width * 5) - 2),
-                    child: Container(
-                      width: 2,
-                      height: 75,
-                      color: Colors.blue,
-                    ),
-                  );
-                },
-              ),
-            ],
+                AnimatedBuilder(
+                  animation: animationController,
+                  builder: (context, child) {
+                    return Positioned(
+                      left: animationController.value *
+                          ((size.width * _view) - 2),
+                      top: 0,
+                      child: Container(
+                        width: 2,
+                        height: 75,
+                        color: Colors.blue,
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -235,71 +265,109 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
   Widget _buildMidiFailure(MidiFailure state, BuildContext context) {
     return AppErrorWidget(
       message: state.message,
-      replicGap: _replicGapStream,
+      playButton: _playButtonStream,
     );
   }
 
   Widget _buildPlayerFailure(PlayerFailure state, BuildContext context) {
     return AppErrorWidget(
       message: state.message,
-      replicGap: _replicGapStream,
+      playButton: _playButtonStream,
     );
   }
 
-  Duration _getTotalDuration(List<Replic> replics) {
-    Duration allDuration = Duration.zero;
+  double widthLeft = 0;
 
-    final replicG = _replicGapStream.value;
-
-    for (final replic in replics) {
-      allDuration += (replic.timeBefore * (replicG + 1)) +
-          (replic.timeAfter * (replicG + 1));
-    }
-
-    return allDuration;
-  }
-
-  List<Widget> _getSongTrail(List<Replic> replics) {
+  List<Widget> _getSongTrail(Music music) {
     final screenSize = MediaQuery.of(context).size;
 
-    final allDuration = _getTotalDuration(replics);
+    final allDuration = music.musicDuration;
 
     final widthInOneMiliSecond =
-        screenSize.width * 5 / allDuration.inMilliseconds;
+        (screenSize.width * _view) / allDuration.inMilliseconds;
 
     final List<Widget> result = [];
 
-    for (int i = 0; i < replics.length; i++) {
-      final replic = replics[i];
+    int indexForFive = 0;
 
-      result.add(
-        Container(
-          height: 75,
-          color: Colors.red,
-          width: replic.timeBefore.inMilliseconds * widthInOneMiliSecond,
-        ),
-      );
+    widthLeft = 0;
 
-      result.add(
-        Stack(
-          alignment: Alignment.centerLeft,
-          children: [
-            Container(
-              height: 75,
-              color: Colors.red,
-              width: replic.timeAfter.inMilliseconds * widthInOneMiliSecond,
+    for (int i = 0; i < music.replics.length; i++) {
+      final replic = music.replics[i];
+
+      if (_replicGapStream.value != 5) {
+        if (_replicGapStream.value == 1) {
+          result.add(
+            _buildEvent(
+              replic.timeBefore,
+              replic.timeAfter,
+              widthInOneMiliSecond,
+              false,
             ),
-            Container(
-              height: 75,
-              color: Colors.black,
-              width:
-                  replic.replicDuration.inMilliseconds * widthInOneMiliSecond,
+          );
+        } else if ((i + 1) % _replicGapStream.value != 0) {
+          result.add(
+            _buildEvent(
+              replic.timeBefore,
+              replic.timeAfter,
+              widthInOneMiliSecond,
+              false,
             ),
-          ],
-        ),
-      );
+          );
+        } else {
+          result.add(
+            _buildEvent(
+              replic.timeBefore,
+              replic.timeAfter,
+              widthInOneMiliSecond,
+              true,
+            ),
+          );
+        }
+      } else {
+        if ((i + 1) - (4 * indexForFive) == 1) {
+          result.add(
+            _buildEvent(
+              replic.timeBefore,
+              replic.timeAfter,
+              widthInOneMiliSecond,
+              false,
+            ),
+          );
+          indexForFive++;
+        } else {
+          result.add(
+            _buildEvent(
+              replic.timeBefore,
+              replic.timeAfter,
+              widthInOneMiliSecond,
+              true,
+            ),
+          );
+        }
+      }
     }
 
     return result;
+  }
+
+  Widget _buildEvent(Duration timeBefore, Duration timeAfter,
+      double widthInOneMiliSecond, bool isHidden) {
+    final left = timeBefore.inMilliseconds * widthInOneMiliSecond;
+    final right = timeAfter.inMilliseconds * widthInOneMiliSecond;
+
+    final widget = Positioned(
+      left: left + widthLeft,
+      top: 0,
+      child: Container(
+        height: 75,
+        color: isHidden ? null : Colors.black,
+        width: 5,
+      ),
+    );
+
+    widthLeft += left + right;
+
+    return widget;
   }
 }

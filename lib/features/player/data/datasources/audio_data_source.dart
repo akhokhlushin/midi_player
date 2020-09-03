@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dart_midi/dart_midi.dart';
 import 'package:flutter/services.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/domain/entities/midi_event.dart';
 import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:midi_player/features/player/domain/entities/replic.dart';
@@ -10,11 +10,9 @@ import 'package:rxdart/rxdart.dart';
 
 abstract class AudioDataSource {
   /// Gets stream, which reacts on midi event
-  Future<Stream<MidiEventEntity>> getMidiEventsStream({
-    String midiFilePath,
-    BehaviorSubject<int> replicGap,
-    BehaviorSubject<bool> playButton,
-  });
+  /// If refresh == true, its starts stream again
+  Future<Stream<MidiEventEntity>> getMidiEventsStream(
+      {String midiFilePath, BehaviorSubject<bool> playButton, bool refresh});
 
   /// Gets amount of MIDI events from MIDI file
   Future<int> getEventsAmount({
@@ -24,15 +22,13 @@ abstract class AudioDataSource {
   /// Gets all proper info about music from MIDI file and replics mp3 files
   Future<Music> getMusic({
     int count,
-    String midiFilePath,
   });
 }
 
 class AudioDataSourceImpl extends AudioDataSource {
   final MidiParser _midiParser;
-  final AudioPlayer _duration;
 
-  AudioDataSourceImpl(this._midiParser, this._duration);
+  AudioDataSourceImpl(this._midiParser);
 
   @override
   Future<int> getEventsAmount({String midiFilePath}) async {
@@ -53,15 +49,18 @@ class AudioDataSourceImpl extends AudioDataSource {
   }
 
   @override
-  Future<Music> getMusic({int count, String midiFilePath}) async {
+  Future<Music> getMusic({int count}) async {
     final MidiFile midiFile = await _readMIDIFile(midiFilePath);
 
     final List<List<Duration>> durations = _getTimeCodesList(midiFile);
 
-    final List<String> paths = await _getReplicsPath(count: count);
+    Duration allDuration = Duration.zero;
 
-    final List<Duration> replicsDuration =
-        await _getReplicDurations(replicPaths: paths);
+    for (final duration in durations) {
+      allDuration += duration[0] + duration[1];
+    }
+
+    final List<String> paths = await _getReplicsPath(count: count);
 
     final bitAmount = await _getBitAmount(midiFilePath: midiFilePath);
 
@@ -71,13 +70,13 @@ class AudioDataSourceImpl extends AudioDataSource {
         replicPath: paths[index],
         timeBefore: durations[index][0],
         timeAfter: durations[index][1],
-        replicDuration: replicsDuration[index],
       ),
     );
 
     final Music music = Music(
       bitAmount: bitAmount,
       replics: replics,
+      musicDuration: allDuration,
     );
 
     return music;
@@ -86,30 +85,32 @@ class AudioDataSourceImpl extends AudioDataSource {
   int lastReplic = 0;
 
   @override
-  Future<Stream<MidiEventEntity>> getMidiEventsStream({
-    String midiFilePath,
-    BehaviorSubject<int> replicGap,
-    BehaviorSubject<bool> playButton,
-  }) async {
+  Future<Stream<MidiEventEntity>> getMidiEventsStream(
+      {String midiFilePath,
+      BehaviorSubject<bool> playButton,
+      bool refresh}) async {
     final MidiFile midiFile = await _readMIDIFile(midiFilePath);
 
     final List<List<Duration>> durations = _getTimeCodesList(midiFile);
 
-    return _getOnEventStream(durations, replicGap, playButton);
+    if (refresh) {
+      lastReplic = 0;
+    }
+
+    return _getOnEventStream(durations, playButton, refresh);
   }
 
-  Stream<MidiEventEntity> _getOnEventStream(
-    List<List<Duration>> durations,
-    BehaviorSubject<int> replicGap,
-    BehaviorSubject<bool> playButton,
-  ) async* {
+  Stream<MidiEventEntity> _getOnEventStream(List<List<Duration>> durations,
+      BehaviorSubject<bool> playButton, bool refresh) async* {
     bool restart = true;
     for (int i = lastReplic; i < durations.length; i++) {
+      lastReplic = i;
+
       if (playButton.value) {
         break;
       }
 
-      await Future.delayed((durations[i][0] * 1.015) * (replicGap.value + 1));
+      await Future.delayed(durations[i][0]);
 
       if (playButton.value) {
         break;
@@ -121,9 +122,7 @@ class AudioDataSourceImpl extends AudioDataSource {
         break;
       }
 
-      await Future.delayed((durations[i][1] * 1.015) * (replicGap.value + 1));
-
-      lastReplic = i;
+      await Future.delayed(durations[i][1]);
 
       if (playButton.value) {
         break;
@@ -135,9 +134,9 @@ class AudioDataSourceImpl extends AudioDataSource {
       }
     }
 
-    if (restart) {
+    if (restart && !refresh) {
       await _waitForValueChange(playButton);
-      yield* _getOnEventStream(durations, replicGap, playButton);
+      yield* _getOnEventStream(durations, playButton, false);
     }
   }
 
@@ -153,21 +152,9 @@ class AudioDataSourceImpl extends AudioDataSource {
     return completer.future;
   }
 
-  Future<List<Duration>> _getReplicDurations({List<String> replicPaths}) async {
-    final List<Duration> durations = [];
-
-    for (int i = 0; i < replicPaths.length; i++) {
-      final duration = await _duration.setAsset('assets/${replicPaths[i]}');
-
-      durations.add(duration);
-    }
-
-    return durations;
-  }
-
   Future<List<String>> _getReplicsPath({int count}) async {
     // Fake API
-    return List.generate(count, (index) => 'replics/replic.mp3');
+    return List.generate(count, (index) => tReplicPath);
   }
 
   Future<int> _getBitAmount({String midiFilePath}) async {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/domain/entities/midi_event.dart';
 import 'package:midi_player/features/player/domain/entities/music.dart';
@@ -39,7 +40,6 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
           final musicOrFailure = await _getMusic(
             GetMusicParams(
               count: amount,
-              midiFilePath: midiFilePath,
             ),
           );
 
@@ -49,8 +49,8 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
               final streamOrFailure = await _getMidiEventsStream(
                 GetMidiEventsStreamParams(
                   midiFilePath: midiFilePath,
-                  onReplicGapChange: event.replicGap,
                   playButton: event.playButton,
+                  refresh: true,
                 ),
               );
 

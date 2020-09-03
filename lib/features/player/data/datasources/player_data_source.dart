@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/domain/entities/midi_event.dart';
 import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:rxdart/rxdart.dart';
@@ -52,18 +51,19 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   int lastReplicCount = 0;
   int lastReplicGap = 0;
   Stopwatch stopwatch = Stopwatch();
+  Duration lastDurationOf1AudioPlayer = Duration.zero;
 
   @override
   Future<void> pause({
     BehaviorSubject<bool> playButton,
-  }) {
+  }) async {
     playButton.add(true);
 
-    return Future.wait([
-      _audioPlayer1.pause(),
-      if (_audioPlayer2.state == AudioPlayerState.PLAYING)
-        _audioPlayer2.pause(),
-    ]);
+    await _audioPlayer1.pause();
+
+    if (_audioPlayer2.state == AudioPlayerState.PLAYING) {
+      await _audioPlayer2.pause();
+    }
   }
 
   @override
@@ -76,11 +76,10 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     BehaviorSubject<double> volumeMusic,
     Stream<MidiEventEntity> onMidiEvents,
   }) async {
-    if (_audioPlayer1.state == AudioPlayerState.PLAYING &&
-        _audioPlayer2.state == AudioPlayerState.PLAYING) {
-      _audioPlayer1.stop();
-      _audioPlayer2.stop();
-    }
+    _audioPlayer1.stop();
+    _audioPlayer2.stop();
+
+    lastReplicCount = 0;
 
     playButton.add(false);
 
@@ -98,7 +97,7 @@ class PlayerDataSourceImpl extends PlayerDataSource {
       }
     });
 
-    await _audioCache1.loop(songPath);
+    await _audioCache1.play(songPath);
 
     await _playReplics(
       0,
@@ -122,20 +121,21 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   }) async {
     playButton.add(false);
 
-    volumeMusic.stream.listen((value) {
-      _audioPlayer1.setVolume(value);
-    });
-    volumeReplic.stream.listen((value) {
-      _audioPlayer2.setVolume(value);
-    });
-
     playButton.listen((value) {
       if (value) {
         stopwatch.stop();
       }
     });
 
-    await _audioPlayer1.resume();
+    await _audioCache1.play(songPath);
+
+    volumeMusic.stream.listen((value) {
+      _audioPlayer1.setVolume(value);
+    });
+
+    volumeReplic.stream.listen((value) {
+      _audioPlayer2.setVolume(value);
+    });
 
     final lastDurationPassed = stopwatch.elapsed;
 
@@ -160,10 +160,18 @@ class PlayerDataSourceImpl extends PlayerDataSource {
       }
     }
 
-    await _audioPlayer2.resume();
+    if (_audioPlayer2.state == AudioPlayerState.PAUSED) {
+      await _audioPlayer2.resume();
+    }
 
     await _playReplics(lastReplicCount + 1, playButton, replics, volumeReplic,
         replicGap, onMidiEvents);
+  }
+
+  Future<void> _playReplic(String replicPath, double volume) async {
+    await _audioCache2.play(replicPath);
+
+    await _audioPlayer2.setVolume(volume);
   }
 
   Future<void> _playReplics(
@@ -175,13 +183,13 @@ class PlayerDataSourceImpl extends PlayerDataSource {
     Stream<MidiEventEntity> onMidiEvents,
   ) async {
     int i = lastCount;
+    int replicCount = lastCount;
+    int replicCountForFive = 0;
 
     await for (final _ in onMidiEvents) {
-      final replic = replics[i];
+      final replic = replics[replicCount];
 
       lastReplicCount = i;
-
-      stopwatch.start();
 
       if (playButton.value) {
         break;
@@ -189,25 +197,32 @@ class PlayerDataSourceImpl extends PlayerDataSource {
 
       final volume = volumeReplic.value;
 
-      await _audioCache2.play(replic.replicPath);
-
-      await _audioPlayer2.setVolume(volume);
+      if (replicGap.value != 1) {
+        if (replicGap.value != 5) {
+          if ((i + 1) % replicGap.value != 0) {
+            await _playReplic(replic.replicPath, volume);
+          } else {
+            replicCount--;
+          }
+        } else {
+          if ((i + 1) - (4 * replicCountForFive) == 1) {
+            await _playReplic(replic.replicPath, volume);
+          }
+        }
+      } else {
+        await _playReplic(replic.replicPath, volume);
+      }
 
       if (playButton.value) {
         break;
       }
 
-      stopwatch.stop();
-
-      logger.d('Execution time: ${stopwatch.elapsed}');
-
-      stopwatch.reset();
-
-      if (playButton.value) {
-        break;
+      if ((i + 1) - (4 * replicCountForFive) == 1) {
+        replicCountForFive++;
       }
 
       i++;
+      replicCount++;
     }
 
     playButton.add(true);

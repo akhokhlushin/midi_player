@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:midi_player/core/constants.dart';
 import 'package:rxdart/rxdart.dart';
 
 class GapSetter extends StatefulWidget {
@@ -18,21 +19,23 @@ class _GapSetterState extends State<GapSetter> {
     return Column(
       children: [
         Text(
-          "${replicGap.toStringAsFixed(2)} replics 'durations' which would bypassed before next replic",
+          '$replicGap% of replics would bypassed',
         ),
         const SizedBox(height: 24),
         Slider(
           value: replicGap.toDouble(),
           onChanged: (value) {
+            final v = value.toInt();
             setState(() {
-              replicGap = value.toInt();
+              replicGap = v;
             });
-
-            widget.replicGapStream.add(value.toInt());
+            widget.replicGapStream
+                .add((v == 75 ? 5 : v == 0 ? 1 : 100 / v).toInt());
+            logger.d(widget.replicGapStream.value);
           },
-          max: 3.0,
+          max: 75,
           divisions: 3,
-          label: '$replicGap',
+          label: '$replicGap%',
         ),
       ],
     );

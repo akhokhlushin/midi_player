@@ -6,9 +6,9 @@ import 'package:rxdart/rxdart.dart';
 
 class AppErrorWidget extends StatefulWidget {
   final String message;
-  final BehaviorSubject<int> replicGap;
+  final BehaviorSubject<bool> playButton;
 
-  const AppErrorWidget({Key key, this.message, this.replicGap})
+  const AppErrorWidget({Key key, this.message, this.playButton})
       : super(key: key);
 
   @override
@@ -29,9 +29,7 @@ class _ErrorState extends State<AppErrorWidget> {
           onPressed: () {
             BlocProvider.of<MidiBloc>(context).add(
               InitialiseMidi(
-                midiFilePath: midiFilePath,
-                replicGap: widget.replicGap,
-              ),
+                  midiFilePath: midiFilePath, playButton: widget.playButton),
             );
           },
           child: const Text('Try again'),

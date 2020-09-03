@@ -6,11 +6,10 @@ import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class AudioDataRepository {
-  Future<Either<Failure, Stream<MidiEventEntity>>> getMidiEventsStream({
-    @required String midiFilePath,
-    @required BehaviorSubject<int> replicGap,
-    @required BehaviorSubject<bool> playButton,
-  });
+  Future<Either<Failure, Stream<MidiEventEntity>>> getMidiEventsStream(
+      {@required String midiFilePath,
+      @required BehaviorSubject<bool> playButton,
+      @required bool refresh});
 
   Future<Either<Failure, int>> getEventsAmount({
     @required String midiFilePath,
@@ -18,6 +17,5 @@ abstract class AudioDataRepository {
 
   Future<Either<Failure, Music>> getMusic({
     @required int count,
-    @required String midiFilePath,
   });
 }

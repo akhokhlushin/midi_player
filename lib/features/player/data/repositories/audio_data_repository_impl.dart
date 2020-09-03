@@ -26,23 +26,20 @@ class AudioDataRepositoryImpl extends AudioDataRepository {
   }
 
   @override
-  Future<Either<Failure, Music>> getMusic({int count, String midiFilePath}) {
+  Future<Either<Failure, Music>> getMusic({int count}) {
     return _handleCalls<Music>(
-      () => _dataSource.getMusic(count: count, midiFilePath: midiFilePath),
+      () => _dataSource.getMusic(count: count),
     );
   }
 
   @override
-  Future<Either<Failure, Stream<MidiEventEntity>>> getMidiEventsStream({
-    String midiFilePath,
-    BehaviorSubject<int> replicGap,
-    BehaviorSubject<bool> playButton,
-  }) {
+  Future<Either<Failure, Stream<MidiEventEntity>>> getMidiEventsStream(
+      {String midiFilePath, BehaviorSubject<bool> playButton, bool refresh}) {
     return _handleCalls<Stream<MidiEventEntity>>(
       () => _dataSource.getMidiEventsStream(
         midiFilePath: midiFilePath,
-        replicGap: replicGap,
         playButton: playButton,
+        refresh: refresh,
       ),
     );
   }

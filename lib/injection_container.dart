@@ -13,7 +13,6 @@ import 'package:midi_player/features/player/domain/usecases/play.dart';
 import 'package:midi_player/features/player/domain/usecases/resume.dart';
 import 'package:midi_player/features/player/presentation/bloc/pause/pause_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
-import 'package:just_audio/just_audio.dart' as prefix;
 
 import 'features/player/presentation/bloc/midi/midi_bloc.dart';
 import 'features/player/presentation/bloc/resume/resume_bloc.dart';
@@ -22,9 +21,8 @@ final GetIt sl = GetIt.instance;
 
 void initialiseDependecies() {
   // Device permission
-  sl.registerFactory(() => AudioPlayer());
+  sl.registerSingleton(AudioPlayer());
   sl.registerSingleton(MidiParser());
-  sl.registerSingleton(prefix.AudioPlayer());
 
   sl.registerSingleton(
     PlayerDataSourceImpl(
@@ -36,7 +34,6 @@ void initialiseDependecies() {
   sl.registerSingleton(
     AudioDataSourceImpl(
       sl<MidiParser>(),
-      sl<prefix.AudioPlayer>(),
     ),
   );
 

@@ -15,18 +15,16 @@ class GetMidiEventsStream
   Future<Either<Failure, Stream<MidiEventEntity>>> call(
       GetMidiEventsStreamParams params) {
     return _repository.getMidiEventsStream(
-      midiFilePath: params.midiFilePath,
-      replicGap: params.onReplicGapChange,
-      playButton: params.playButton,
-    );
+        midiFilePath: params.midiFilePath,
+        playButton: params.playButton,
+        refresh: params.refresh);
   }
 }
 
 class GetMidiEventsStreamParams {
   final String midiFilePath;
-  final BehaviorSubject<int> onReplicGapChange;
   final BehaviorSubject<bool> playButton;
+  final bool refresh;
 
-  GetMidiEventsStreamParams(
-      {this.midiFilePath, this.onReplicGapChange, this.playButton});
+  GetMidiEventsStreamParams({this.midiFilePath, this.playButton, this.refresh});
 }

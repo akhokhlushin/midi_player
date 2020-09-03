@@ -12,13 +12,13 @@ class GetMusic extends UseCase<Music, GetMusicParams> {
   @override
   Future<Either<Failure, Music>> call(GetMusicParams params) {
     return _repository.getMusic(
-        count: params.count, midiFilePath: params.midiFilePath);
+      count: params.count,
+    );
   }
 }
 
 class GetMusicParams {
   final int count;
-  final String midiFilePath;
 
-  GetMusicParams({this.count, this.midiFilePath});
+  GetMusicParams({this.count});
 }
