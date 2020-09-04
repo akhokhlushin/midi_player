@@ -6,10 +6,9 @@ abstract class MidiEvent extends Equatable {
 
 class InitialiseMidi extends MidiEvent {
   final String midiFilePath;
-  final BehaviorSubject<bool> playButton;
 
-  const InitialiseMidi({this.midiFilePath, this.playButton});
+  const InitialiseMidi({this.midiFilePath});
 
   @override
-  List<Object> get props => [midiFilePath, playButton];
+  List<Object> get props => [midiFilePath];
 }

@@ -4,12 +4,9 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:midi_player/core/constants.dart';
-import 'package:midi_player/features/player/domain/entities/midi_event.dart';
 import 'package:midi_player/features/player/domain/entities/music.dart';
 import 'package:midi_player/features/player/domain/usecases/get_events_amount.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
-import 'package:midi_player/features/player/domain/usecases/get_midi_events_stream.dart';
-import 'package:rxdart/subjects.dart';
 
 part 'midi_event.dart';
 part 'midi_state.dart';
@@ -17,10 +14,8 @@ part 'midi_state.dart';
 class MidiBloc extends Bloc<MidiEvent, MidiState> {
   final GetMidiEventsAmount _getMidiEventsAmount;
   final GetMusic _getMusic;
-  final GetMidiEventsStream _getMidiEventsStream;
 
-  MidiBloc(
-      this._getMusic, this._getMidiEventsStream, this._getMidiEventsAmount);
+  MidiBloc(this._getMusic, this._getMidiEventsAmount);
 
   @override
   MidiState get initialState => MidiInitial();
@@ -45,20 +40,7 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
 
           return await musicOrFailure.fold(
             (failure) => MidiFailure(failure.message),
-            (music) async {
-              final streamOrFailure = await _getMidiEventsStream(
-                GetMidiEventsStreamParams(
-                  midiFilePath: midiFilePath,
-                  playButton: event.playButton,
-                  refresh: true,
-                ),
-              );
-
-              return await streamOrFailure.fold(
-                (failure) => MidiFailure(failure.message),
-                (stream) => MidiSuccess(music, stream),
-              );
-            },
+            (music) => MidiSuccess(music),
           );
         },
       );

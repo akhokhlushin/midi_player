@@ -1,7 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:midi_player/features/player/data/datasources/player_data_source.dart';
-import 'package:midi_player/features/player/domain/entities/midi_event.dart';
-import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/features/player/domain/repositories/player_repository.dart';
@@ -27,59 +25,79 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, void>> pause({
-    BehaviorSubject<bool> playButton,
-  }) {
+  Future<Either<Failure, void>> pauseMusic() {
     return _handleCalls<void>(
-      () => _dataSource.pause(
-        playButton: playButton,
+      () => _dataSource.pauseMusic(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> pauseReplic() {
+    return _handleCalls<void>(
+      () => _dataSource.pauseReplic(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> playMusic(
+      {String songPath, BehaviorSubject<double> volumeMusic}) {
+    return _handleCalls<void>(
+      () => _dataSource.playMusic(
+        volumeMusic: volumeMusic,
+        songPath: songPath,
       ),
     );
   }
 
   @override
-  Future<Either<Failure, void>> play({
-    List<Replic> replics,
-    BehaviorSubject<double> volumeReplic,
-    BehaviorSubject<int> replicGap,
-    BehaviorSubject<bool> playButton,
-    String songPath,
-    BehaviorSubject<double> volumeMusic,
-    Stream<MidiEventEntity> onMidiEvents,
-  }) async {
+  Future<Either<Failure, void>> playReplic(
+      {String replicPath, BehaviorSubject<double> volumeReplic}) {
     return _handleCalls<void>(
-      () => _dataSource.play(
-        playButton: playButton,
-        replicGap: replicGap,
-        replics: replics,
-        songPath: songPath,
-        volumeMusic: volumeMusic,
+      () => _dataSource.playReplic(
+        replicPath: replicPath,
         volumeReplic: volumeReplic,
-        onMidiEvents: onMidiEvents,
       ),
     );
   }
 
   @override
-  Future<Either<Failure, void>> resume({
-    @required String songPath,
-    @required BehaviorSubject<double> volumeMusic,
-    @required BehaviorSubject<bool> playButton,
-    @required List<Replic> replics,
-    @required BehaviorSubject<double> volumeReplic,
-    @required BehaviorSubject<int> replicGap,
-    @required Stream<MidiEventEntity> onMidiEvents,
-  }) {
+  Future<Either<Failure, void>> resumeMusic(
+      {BehaviorSubject<double> volumeMusic}) {
     return _handleCalls<void>(
-      () => _dataSource.resume(
-        playButton: playButton,
-        replicGap: replicGap,
-        replics: replics,
-        songPath: songPath,
+      () => _dataSource.resumeMusic(
         volumeMusic: volumeMusic,
-        volumeReplic: volumeReplic,
-        onMidiEvents: onMidiEvents,
       ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> resumeReplic(
+      {BehaviorSubject<double> volumeReplic}) {
+    return _handleCalls<void>(
+      () => _dataSource.resumeReplic(
+        volumeReplic: volumeReplic,
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> stopReplic() {
+    return _handleCalls<void>(
+      () => _dataSource.stopReplic(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, AudioPlayerState>> getAudioPlayerState() {
+    return _handleCalls<AudioPlayerState>(
+      () => _dataSource.getAudioPlayerState(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> stopMusic() {
+    return _handleCalls<void>(
+      () => _dataSource.stopMusic(),
     );
   }
 }

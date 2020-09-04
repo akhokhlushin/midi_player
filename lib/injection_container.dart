@@ -5,23 +5,26 @@ import 'package:midi_player/features/player/data/datasources/audio_data_source.d
 import 'package:midi_player/features/player/data/datasources/player_data_source.dart';
 import 'package:midi_player/features/player/data/repositories/audio_data_repository_impl.dart';
 import 'package:midi_player/features/player/data/repositories/player_repository_impl.dart';
+import 'package:midi_player/features/player/domain/usecases/get_audio_player_state.dart';
 import 'package:midi_player/features/player/domain/usecases/get_events_amount.dart';
-import 'package:midi_player/features/player/domain/usecases/get_midi_events_stream.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
-import 'package:midi_player/features/player/domain/usecases/pause.dart';
-import 'package:midi_player/features/player/domain/usecases/play.dart';
-import 'package:midi_player/features/player/domain/usecases/resume.dart';
-import 'package:midi_player/features/player/presentation/bloc/pause/pause_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 
+import 'features/player/domain/usecases/pause_music.dart';
+import 'features/player/domain/usecases/pause_replic.dart';
+import 'features/player/domain/usecases/play_music.dart';
+import 'features/player/domain/usecases/play_replic.dart';
+import 'features/player/domain/usecases/resume_music.dart';
+import 'features/player/domain/usecases/resume_replic.dart';
+import 'features/player/domain/usecases/stop_music.dart';
+import 'features/player/domain/usecases/stop_replic.dart';
 import 'features/player/presentation/bloc/midi/midi_bloc.dart';
-import 'features/player/presentation/bloc/resume/resume_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
 void initialiseDependecies() {
   // Device permission
-  sl.registerSingleton(AudioPlayer());
+  sl.registerFactory(() => AudioPlayer());
   sl.registerSingleton(MidiParser());
 
   sl.registerSingleton(
@@ -45,13 +48,23 @@ void initialiseDependecies() {
     AudioDataRepositoryImpl(sl<AudioDataSourceImpl>()),
   );
 
-  sl.registerSingleton(Play(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(PlayMusic(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(Pause(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(PauseMusic(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(Resume(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(ResumeMusic(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(GetMidiEventsStream(sl<AudioDataRepositoryImpl>()));
+  sl.registerSingleton(PlayReplic(sl<PlayerRepositoryImpl>()));
+
+  sl.registerSingleton(PauseReplic(sl<PlayerRepositoryImpl>()));
+
+  sl.registerSingleton(ResumeReplic(sl<PlayerRepositoryImpl>()));
+
+  sl.registerSingleton(GetAudioPlayerState(sl<PlayerRepositoryImpl>()));
+
+  sl.registerSingleton(StopReplic(sl<PlayerRepositoryImpl>()));
+
+  sl.registerSingleton(StopMusic(sl<PlayerRepositoryImpl>()));
 
   sl.registerSingleton(GetMusic(sl<AudioDataRepositoryImpl>()));
 
@@ -59,26 +72,21 @@ void initialiseDependecies() {
 
   sl.registerSingleton(
     PlayerBloc(
-      sl<Play>(),
-    ),
-  );
-
-  sl.registerSingleton(
-    PauseBloc(
-      sl<Pause>(),
-    ),
-  );
-
-  sl.registerSingleton(
-    ResumeBloc(
-      sl<Resume>(),
+      sl<PlayMusic>(),
+      sl<PlayReplic>(),
+      sl<PauseMusic>(),
+      sl<PauseReplic>(),
+      sl<ResumeMusic>(),
+      sl<ResumeReplic>(),
+      sl<GetAudioPlayerState>(),
+      sl<StopReplic>(),
+      sl<StopMusic>(),
     ),
   );
 
   sl.registerSingleton(
     MidiBloc(
       sl<GetMusic>(),
-      sl<GetMidiEventsStream>(),
       sl<GetMidiEventsAmount>(),
     ),
   );

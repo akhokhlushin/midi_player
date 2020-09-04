@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
-import 'package:rxdart/rxdart.dart';
 
 class AppErrorWidget extends StatefulWidget {
   final String message;
-  final BehaviorSubject<bool> playButton;
 
-  const AppErrorWidget({Key key, this.message, this.playButton})
-      : super(key: key);
+  const AppErrorWidget({Key key, this.message}) : super(key: key);
 
   @override
   _ErrorState createState() => _ErrorState();
@@ -28,8 +25,7 @@ class _ErrorState extends State<AppErrorWidget> {
         RaisedButton(
           onPressed: () {
             BlocProvider.of<MidiBloc>(context).add(
-              InitialiseMidi(
-                  midiFilePath: midiFilePath, playButton: widget.playButton),
+              const InitialiseMidi(midiFilePath: midiFilePath),
             );
           },
           child: const Text('Try again'),

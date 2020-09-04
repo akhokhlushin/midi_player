@@ -103,6 +103,7 @@ class AudioDataSourceImpl extends AudioDataSource {
   Stream<MidiEventEntity> _getOnEventStream(List<List<Duration>> durations,
       BehaviorSubject<bool> playButton, bool refresh) async* {
     bool restart = true;
+    const addition = Duration(milliseconds: 25);
     for (int i = lastReplic; i < durations.length; i++) {
       lastReplic = i;
 
@@ -110,7 +111,7 @@ class AudioDataSourceImpl extends AudioDataSource {
         break;
       }
 
-      await Future.delayed(durations[i][0]);
+      await Future.delayed(durations[i][0] + addition);
 
       if (playButton.value) {
         break;
@@ -122,7 +123,7 @@ class AudioDataSourceImpl extends AudioDataSource {
         break;
       }
 
-      await Future.delayed(durations[i][1]);
+      await Future.delayed(durations[i][1] + addition);
 
       if (playButton.value) {
         break;
