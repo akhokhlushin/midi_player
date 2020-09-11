@@ -6,7 +6,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.9.0 <3.0.0"
 
 dependencies:
   flutter:
@@ -25,7 +25,10 @@ dependencies:
   logger:
   # Device
   audioplayers:
-  # flutter_ffmpeg:
+  path_provider: 
+  path: 
+  flutter_sound:
+  id3:
 
 dev_dependencies:
   flutter_test:

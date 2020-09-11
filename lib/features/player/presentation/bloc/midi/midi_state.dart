@@ -25,10 +25,12 @@ class MidiFailure extends MidiState {
 
 @immutable
 class MidiSuccess extends MidiState {
-  final Music music;
+  final PlayerData music;
+  final Song song;
+  final int index;
 
-  const MidiSuccess(this.music);
+  const MidiSuccess(this.music, this.song, this.index);
 
   @override
-  List<Object> get props => [music];
+  List<Object> get props => [music, song, index];
 }

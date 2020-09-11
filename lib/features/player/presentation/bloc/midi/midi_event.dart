@@ -5,10 +5,11 @@ abstract class MidiEvent extends Equatable {
 }
 
 class InitialiseMidi extends MidiEvent {
-  final String midiFilePath;
+  final Song song;
+  final int index;
 
-  const InitialiseMidi({this.midiFilePath});
+  const InitialiseMidi({this.song, this.index});
 
   @override
-  List<Object> get props => [midiFilePath];
+  List<Object> get props => [song, index];
 }

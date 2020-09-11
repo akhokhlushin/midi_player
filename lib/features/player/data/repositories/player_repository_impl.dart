@@ -24,12 +24,12 @@ class PlayerRepositoryImpl extends PlayerRepository {
     }
   }
 
-  @override
-  Future<Either<Failure, void>> pauseMusic() {
-    return _handleCalls<void>(
-      () => _dataSource.pauseMusic(),
-    );
-  }
+  // @override
+  // Future<Either<Failure, void>> pauseMusic() {
+  //   return _handleCalls<void>(
+  //     () => _dataSource.pauseMusic(),
+  //   );
+  // }
 
   @override
   Future<Either<Failure, void>> pauseReplic() {
@@ -38,16 +38,16 @@ class PlayerRepositoryImpl extends PlayerRepository {
     );
   }
 
-  @override
-  Future<Either<Failure, void>> playMusic(
-      {String songPath, BehaviorSubject<double> volumeMusic}) {
-    return _handleCalls<void>(
-      () => _dataSource.playMusic(
-        volumeMusic: volumeMusic,
-        songPath: songPath,
-      ),
-    );
-  }
+  // @override
+  // Future<Either<Failure, void>> playMusic(
+  //     {String songPath, BehaviorSubject<double> volumeMusic}) {
+  //   return _handleCalls<void>(
+  //     () => _dataSource.playMusic(
+  //       volumeMusic: volumeMusic,
+  //       songPath: songPath,
+  //     ),
+  //   );
+  // }
 
   @override
   Future<Either<Failure, void>> playReplic(
@@ -60,15 +60,15 @@ class PlayerRepositoryImpl extends PlayerRepository {
     );
   }
 
-  @override
-  Future<Either<Failure, void>> resumeMusic(
-      {BehaviorSubject<double> volumeMusic}) {
-    return _handleCalls<void>(
-      () => _dataSource.resumeMusic(
-        volumeMusic: volumeMusic,
-      ),
-    );
-  }
+  // @override
+  // Future<Either<Failure, void>> resumeMusic(
+  //     {BehaviorSubject<double> volumeMusic}) {
+  //   return _handleCalls<void>(
+  //     () => _dataSource.resumeMusic(
+  //       volumeMusic: volumeMusic,
+  //     ),
+  //   );
+  // }
 
   @override
   Future<Either<Failure, void>> resumeReplic(
@@ -94,10 +94,10 @@ class PlayerRepositoryImpl extends PlayerRepository {
     );
   }
 
-  @override
-  Future<Either<Failure, void>> stopMusic() {
-    return _handleCalls<void>(
-      () => _dataSource.stopMusic(),
-    );
-  }
+  // @override
+  // Future<Either<Failure, void>> stopMusic() {
+  //   return _handleCalls<void>(
+  //     () => _dataSource.stopMusic(),
+  //   );
+  // }
 }

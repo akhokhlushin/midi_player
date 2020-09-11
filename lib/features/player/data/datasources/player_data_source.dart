@@ -5,22 +5,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerDataSource {
-  // Starts playing music from assets
-  Future<void> playMusic({
-    String songPath,
-    BehaviorSubject<double> volumeMusic,
-  });
-
-  // Pauses music in current location
-
-  Future<void> pauseMusic();
-
-  // Resumes music
-
-  Future<void> resumeMusic({
-    BehaviorSubject<double> volumeMusic,
-  });
-
   // Starts playing replic from assets
 
   Future<void> playReplic({
@@ -42,93 +26,63 @@ abstract class PlayerDataSource {
 
   Future<void> stopReplic();
 
-// Stops playing music
-
-  Future<void> stopMusic();
-
   // Gets current audioplayer state
 
   Future<AudioPlayerState> getAudioPlayerState();
 }
 
 class PlayerDataSourceImpl extends PlayerDataSource {
-  final AudioPlayer _audioPlayer1;
-  final AudioPlayer _audioPlayer2;
-  AudioCache _audioCache1;
-  AudioCache _audioCache2;
+  final AudioPlayer _audioPlayer;
+  AudioCache _audioCache;
+
+  // Use of API
+  // TODO: Change code for getting and playing music from API
 
   PlayerDataSourceImpl(
-    this._audioPlayer1,
-    this._audioPlayer2,
+    this._audioPlayer,
   ) {
-    _audioCache1 = AudioCache(fixedPlayer: _audioPlayer1);
-    _audioCache2 = AudioCache(fixedPlayer: _audioPlayer2);
-  }
-
-  @override
-  Future<void> pauseMusic() async {
-    await _audioPlayer1.pause();
+    _audioCache = AudioCache(fixedPlayer: _audioPlayer);
   }
 
   @override
   Future<void> pauseReplic() async {
-    if (_audioPlayer2.state == AudioPlayerState.PLAYING) {
-      await _audioPlayer2.pause();
+    if (_audioPlayer.state == AudioPlayerState.PLAYING) {
+      await _audioPlayer.pause();
     }
-  }
-
-  @override
-  Future<void> playMusic(
-      {String songPath, BehaviorSubject<double> volumeMusic}) async {
-    volumeMusic.listen((value) async {
-      await _audioPlayer1.setVolume(value);
-    });
-
-    await _audioCache1.play(songPath);
   }
 
   @override
   Future<void> playReplic(
       {String replicPath, BehaviorSubject<double> volumeReplic}) async {
     volumeReplic.listen((value) async {
-      await _audioPlayer1.setVolume(value);
+      await _audioPlayer.setVolume(value);
     });
 
-    await _audioCache2.play(replicPath);
-  }
+    final volume = volumeReplic.value;
 
-  @override
-  Future<void> resumeMusic({BehaviorSubject<double> volumeMusic}) async {
-    volumeMusic.listen((value) async {
-      await _audioPlayer1.setVolume(value);
-    });
+    await _audioCache.play(replicPath);
 
-    await _audioPlayer1.resume();
+    await _audioPlayer.setVolume(volume);
   }
 
   @override
   Future<void> resumeReplic({BehaviorSubject<double> volumeReplic}) async {
     volumeReplic.listen((value) async {
-      await _audioPlayer1.setVolume(value);
+      await _audioPlayer.setVolume(value);
     });
 
-    if (_audioPlayer2.state == AudioPlayerState.PAUSED) {
-      await _audioPlayer2.resume();
+    if (_audioPlayer.state == AudioPlayerState.PAUSED) {
+      await _audioPlayer.resume();
     }
   }
 
   @override
   Future<void> stopReplic() async {
-    await _audioPlayer2.stop();
+    await _audioPlayer.stop();
   }
 
   @override
   Future<AudioPlayerState> getAudioPlayerState() async {
-    return _audioPlayer2.state;
-  }
-
-  @override
-  Future<void> stopMusic() async {
-    await _audioPlayer1.stop();
+    return _audioPlayer.state;
   }
 }

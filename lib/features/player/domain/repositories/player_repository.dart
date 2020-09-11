@@ -5,16 +5,16 @@ import 'package:midi_player/core/errors/failures.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerRepository {
-  Future<Either<Failure, void>> playMusic({
-    @required String songPath,
-    @required BehaviorSubject<double> volumeMusic,
-  });
+  // Future<Either<Failure, void>> playMusic({
+  //   @required String songPath,
+  //   @required BehaviorSubject<double> volumeMusic,
+  // });
 
-  Future<Either<Failure, void>> pauseMusic();
+  // Future<Either<Failure, void>> pauseMusic();
 
-  Future<Either<Failure, void>> resumeMusic({
-    @required BehaviorSubject<double> volumeMusic,
-  });
+  // Future<Either<Failure, void>> resumeMusic({
+  //   @required BehaviorSubject<double> volumeMusic,
+  // });
 
   Future<Either<Failure, void>> playReplic({
     @required String replicPath,
@@ -29,7 +29,7 @@ abstract class PlayerRepository {
 
   Future<Either<Failure, void>> stopReplic();
 
-  Future<Either<Failure, void>> stopMusic();
+  // Future<Either<Failure, void>> stopMusic();
 
   Future<Either<Failure, AudioPlayerState>> getAudioPlayerState();
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:midi_player/core/constants.dart';
-import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
 
 class AppErrorWidget extends StatefulWidget {
   final String message;
+  final void Function() onError;
 
-  const AppErrorWidget({Key key, this.message}) : super(key: key);
+  const AppErrorWidget({
+    Key key,
+    this.message,
+    this.onError,
+  }) : super(key: key);
 
   @override
   _ErrorState createState() => _ErrorState();
@@ -15,22 +17,19 @@ class AppErrorWidget extends StatefulWidget {
 class _ErrorState extends State<AppErrorWidget> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        const SizedBox(
-          width: double.infinity,
-        ),
-        Text('Oops! ${widget.message}'),
-        RaisedButton(
-          onPressed: () {
-            BlocProvider.of<MidiBloc>(context).add(
-              const InitialiseMidi(midiFilePath: midiFilePath),
-            );
-          },
-          child: const Text('Try again'),
-        ),
-      ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('Oops! ${widget.message}'),
+          RaisedButton(
+            onPressed: () {
+              widget.onError();
+            },
+            child: const Text('Try again'),
+          ),
+        ],
+      ),
     );
   }
 }

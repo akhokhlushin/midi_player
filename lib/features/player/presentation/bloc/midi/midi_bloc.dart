@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:midi_player/core/constants.dart';
-import 'package:midi_player/features/player/domain/entities/music.dart';
+import 'package:midi_player/features/catalog/domain/entities/song.dart';
+import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:midi_player/features/player/domain/usecases/get_events_amount.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
 
@@ -27,7 +27,8 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
     if (event is InitialiseMidi) {
       yield MidiLoading();
 
-      final eventsAmountOrFailure = await _getMidiEventsAmount(midiFilePath);
+      final eventsAmountOrFailure =
+          await _getMidiEventsAmount(event.song.midiFilePath);
 
       yield await eventsAmountOrFailure.fold(
         (failure) => MidiFailure(failure.message),
@@ -35,12 +36,13 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
           final musicOrFailure = await _getMusic(
             GetMusicParams(
               count: amount,
+              midiFilePath: event.song.midiFilePath,
             ),
           );
 
           return await musicOrFailure.fold(
             (failure) => MidiFailure(failure.message),
-            (music) => MidiSuccess(music),
+            (music) => MidiSuccess(music, event.song, event.index),
           );
         },
       );
