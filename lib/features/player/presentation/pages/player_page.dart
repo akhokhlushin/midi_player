@@ -1,15 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:midi_player/core/constants.dart';
-import 'package:midi_player/core/widgets/common_stream_builder.dart';
+import 'package:marquee/marquee.dart';
 import 'package:midi_player/core/widgets/void.dart';
 import 'package:midi_player/features/catalog/presentation/bloc/catalog_bloc.dart';
-import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:midi_player/features/player/presentation/widgets/error.dart';
 import 'package:midi_player/features/player/presentation/widgets/gap_setter.dart';
+import 'package:midi_player/features/player/presentation/widgets/play_button.dart';
 import 'package:midi_player/features/player/presentation/widgets/variation_setter.dart';
 import 'package:midi_player/features/player/presentation/widgets/volume_setter.dart';
 import 'package:rxdart/rxdart.dart';
@@ -35,7 +34,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   AnimationController _animationController;
 
-  final int _view = 20;
+  int replicIndex = 0;
+
+  // final int _view = 20;
 
   void _playReplic(String replicPath) {
     BlocProvider.of<PlayerBloc>(context).add(
@@ -90,125 +91,120 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     super.initState();
   }
 
-  int replicIndex = 0;
+  void Function(Duration d) _postFrame(MidiSuccess success) {
+    return (_) {
+      _animationController.value = 0;
+
+      _playMusic(success.song.path);
+
+      _playButtonStream.add(false);
+
+      _animationController.animateTo(
+        1,
+        duration:
+            success.music.midiFileDuration * (1 - _animationController.value),
+      );
+    };
+  }
+
+  void Function() _func;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              Navigator.of(context).pushNamed('/catalog');
+    return SafeArea(
+      child: Scaffold(
+        body: BlocConsumer<CatalogBloc, CatalogState>(
+          builder: (context, catalogState) {
+            if (catalogState is CatalogInitial ||
+                catalogState is CatalogLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (catalogState is CatalogFailure) {
+            } else if (catalogState is CatalogSuccess) {
+              return BlocBuilder<PlayerBloc, PlayerState>(
+                builder: (context, state) {
+                  if (state is PlayerFailure) {
+                    return _buildFailure(
+                      state.message,
+                      () => BlocProvider.of<CatalogBloc>(context).add(
+                        InitialiseCatalog(),
+                      ),
+                    );
+                  } else if (state is PlayerInitial) {
+                    return BlocConsumer<MidiBloc, MidiState>(
+                      listener: (context, state) {
+                        if (state is MidiSuccess) {
+                          replicIndex = 0;
 
-              _pause();
+                          _animationController.removeListener(_func);
 
-              _playButtonStream.add(true);
+                          _func = () {
+                            final borders = state.music
+                                .getBordersByIndex(_replicGapStream.value);
 
-              _animationController.stop();
-            },
-          ),
-        ],
-      ),
-      body: BlocConsumer<CatalogBloc, CatalogState>(
-        builder: (context, catalogState) {
-          if (catalogState is CatalogInitial ||
-              catalogState is CatalogLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (catalogState is CatalogFailure) {
-          } else if (catalogState is CatalogSuccess) {
-            return BlocBuilder<PlayerBloc, PlayerState>(
-              builder: (context, state) {
-                if (state is PlayerFailure) {
-                  return _buildFailure(
-                    state.message,
-                    () => BlocProvider.of<CatalogBloc>(context).add(
-                      InitialiseCatalog(),
-                    ),
-                  );
-                } else if (state is PlayerInitial) {
-                  return BlocConsumer<MidiBloc, MidiState>(
-                    listener: (context, state) {
-                      if (state is MidiSuccess) {
-                        replicIndex = 0;
+                            if (borders
+                                .containsNearest(_animationController.value)) {
+                              if (replicIndex < state.music.replics.length) {
+                                _playReplic(state
+                                    .music.replics[replicIndex].replicPath);
+                              } else {
+                                _playReplic(
+                                    state.music.replics.last.replicPath);
+                              }
 
-                        _animationController.addListener(() {
-                          final borders = state.music
-                              .getBordersByIndex(_replicGapStream.value);
-
-                          if (borders
-                              .containsNearest(_animationController.value)) {
-                            if (replicIndex < state.music.replics.length) {
-                              _playReplic(
-                                  state.music.replics[replicIndex].replicPath);
-                            } else {
-                              _playReplic(state.music.replics.last.replicPath);
+                              replicIndex++;
                             }
+                          };
 
-                            replicIndex++;
+                          _animationController.addListener(_func);
 
-                            logger.d(replicIndex);
-                          }
-                        });
-
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          _animationController.value = 0;
-
-                          _playMusic(state.song.path);
-
-                          _playButtonStream.add(false);
-
-                          _animationController.animateTo(
-                            1,
-                            duration: state.music.midiFileDuration *
-                                (1 - _animationController.value),
+                          WidgetsBinding.instance
+                              .addPostFrameCallback(_postFrame(state));
+                        }
+                      },
+                      builder: (context, state) {
+                        if (state is MidiLoading || state is MidiInitial) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        });
-                      }
-                    },
-                    builder: (context, state) {
-                      if (state is MidiLoading || state is MidiInitial) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (state is MidiFailure) {
-                        return _buildFailure(
-                          state.message,
-                          () => BlocProvider.of<MidiBloc>(context).add(
-                            InitialiseMidi(
-                              song: catalogState.songs.first,
-                              index: 0,
+                        } else if (state is MidiFailure) {
+                          return _buildFailure(
+                            state.message,
+                            () => BlocProvider.of<MidiBloc>(context).add(
+                              InitialiseMidi(
+                                song: catalogState.songs.first,
+                                index: 0,
+                              ),
                             ),
-                          ),
-                        );
-                      } else if (state is MidiSuccess) {
-                        return _buildSuccess(state, _animationController, size);
-                      }
-                      return const Void();
-                    },
-                  );
-                }
-                return const Void();
-              },
-            );
-          }
-          return const Void();
-        },
-        listener: (context, state) {
-          if (state is CatalogSuccess) {
-            BlocProvider.of<MidiBloc>(context).add(
-              InitialiseMidi(
-                song: state.songs.first,
-                index: 0,
-              ),
-            );
-          }
-        },
+                          );
+                        } else if (state is MidiSuccess) {
+                          return _buildSuccess(
+                              state, _animationController, size);
+                        }
+                        return const Void();
+                      },
+                    );
+                  }
+                  return const Void();
+                },
+              );
+            }
+            return const Void();
+          },
+          listener: (context, state) {
+            if (state is CatalogSuccess) {
+              BlocProvider.of<MidiBloc>(context).add(
+                InitialiseMidi(
+                  song: state.songs.first,
+                  index: 0,
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
@@ -218,6 +214,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        const SizedBox(height: 25),
         const Text('༼ つ ◕_◕ ༽つ'),
         const SizedBox(height: 25),
         VolumeSetter(
@@ -234,9 +231,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
-                setState(() {
-                  replicIndex = 0;
-                });
+                replicIndex = 0;
 
                 _animationController.value = 0;
 
@@ -253,34 +248,29 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 _playButtonStream.add(false);
               },
             ),
-            CommonStreamBuilder<bool>(
-              stream: _playButtonStream,
-              onHasData: (bool value) {
-                return IconButton(
-                  icon: value
-                      ? const Icon(Icons.play_arrow)
-                      : const Icon(Icons.pause),
-                  onPressed: value
-                      ? () {
-                          animationController.animateTo(
-                            1,
-                            duration: state.music.midiFileDuration *
-                                (1 - animationController.value),
-                          );
-
-                          _resumeMusic();
-                          _resumeReplic();
-
-                          _playButtonStream.add(false);
-                        }
-                      : () {
-                          animationController.stop();
-
-                          _pause();
-
-                          _playButtonStream.add(true);
-                        },
+            PlayButton(
+              value: _playButtonStream,
+              onPlay: () {
+                animationController.animateTo(
+                  1,
+                  duration: state.music.midiFileDuration *
+                      (1 - animationController.value),
                 );
+
+                _resumeMusic();
+                _resumeReplic();
+
+                _playButtonStream.add(false);
+              },
+              onPause: () {
+                animationController.stop();
+
+                _pause();
+
+                _playButtonStream.add(true);
+              },
+              onLong: () {
+                Navigator.of(context).pushNamed('/catalog');
               },
             ),
           ],
@@ -294,57 +284,14 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
         const SizedBox(
           height: 20,
         ),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: size.width * _view,
-            height: 75,
-            child: Stack(
-              children: [
-                Container(
-                  width: size.width * _view,
-                  height: 75,
-                  color: Colors.red,
-                ),
-                CommonStreamBuilder<int>(
-                  stream: _replicGapStream,
-                  onHasData: (value) {
-                    return Stack(
-                      children: _getSongTrail(state.music),
-                    );
-                  },
-                ),
-                Container(
-                  width: size.width * _view,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: List<Widget>.generate(
-                      state.music.bitAmount,
-                      (index) => Container(
-                        height: 75,
-                        color: Colors.green,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                AnimatedBuilder(
-                  animation: animationController,
-                  builder: (context, child) {
-                    return Positioned(
-                      left: animationController.value *
-                          ((size.width * _view) - 2),
-                      top: 0,
-                      child: Container(
-                        width: 2,
-                        height: 75,
-                        color: Colors.blue,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+        const Expanded(
+          child: SizedBox(),
+        ),
+        Container(
+          height: 50,
+          child: Marquee(
+            text: state.song.fullName,
+            blankSpace: 50,
           ),
         ),
       ],
@@ -356,40 +303,5 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
       message: message,
       onError: onError,
     );
-  }
-
-  List<Widget> _getSongTrail(PlayerData music) {
-    final screenSize = MediaQuery.of(context).size;
-
-    final List<Widget> result = [];
-
-    final borders = music.getBordersByIndex(_replicGapStream.value);
-
-    for (int i = 0; i < borders.length; i++) {
-      final border = borders[i];
-
-      result.add(
-        _buildEvent(
-          screenSize,
-          border,
-        ),
-      );
-    }
-
-    return result;
-  }
-
-  Widget _buildEvent(Size size, double border) {
-    final widget = Positioned(
-      top: 0,
-      left: (size.width * _view) * border,
-      child: Container(
-        height: 75,
-        color: Colors.black,
-        width: 5,
-      ),
-    );
-
-    return widget;
   }
 }

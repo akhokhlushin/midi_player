@@ -16,6 +16,7 @@ dependencies:
   flutter_bloc:
   neumorphic:
   cupertino_icons:
+  marquee: 
   # Dart support
   dartz:
   dart_midi:

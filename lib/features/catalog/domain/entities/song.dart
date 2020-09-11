@@ -23,5 +23,5 @@ class Song extends Equatable {
   @override
   List<Object> get props => [image, songDuration, album, author, songName];
 
-  String get fullName => '$author - $songName ($album)';
+  String get fullName => '$author, $album - $songName';
 }

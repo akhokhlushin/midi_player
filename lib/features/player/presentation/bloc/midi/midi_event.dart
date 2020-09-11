@@ -8,8 +8,14 @@ class InitialiseMidi extends MidiEvent {
   final Song song;
   final int index;
 
-  const InitialiseMidi({this.song, this.index});
+  const InitialiseMidi({
+    this.song,
+    this.index,
+  });
 
   @override
-  List<Object> get props => [song, index];
+  List<Object> get props => [
+        song,
+        index,
+      ];
 }

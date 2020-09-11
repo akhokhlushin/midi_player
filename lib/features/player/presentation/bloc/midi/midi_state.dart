@@ -32,5 +32,9 @@ class MidiSuccess extends MidiState {
   const MidiSuccess(this.music, this.song, this.index);
 
   @override
-  List<Object> get props => [music, song, index];
+  List<Object> get props => [
+        music,
+        song,
+        index,
+      ];
 }

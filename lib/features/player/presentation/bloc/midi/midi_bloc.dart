@@ -42,7 +42,11 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
 
           return await musicOrFailure.fold(
             (failure) => MidiFailure(failure.message),
-            (music) => MidiSuccess(music, event.song, event.index),
+            (music) => MidiSuccess(
+              music,
+              event.song,
+              event.index,
+            ),
           );
         },
       );

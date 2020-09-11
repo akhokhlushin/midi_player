@@ -27,13 +27,15 @@ class CatalogDataSourceImpl extends CatalogDataSource {
     // TODO: Change code for getting and playing music from API
 
     final List<String> songsPaths = [
-      'assets/music/music.mp3',
-      'assets/music/muusic.mp3',
+      'assets/music/sungirl_110.mp3',
+      'assets/music/sungirl_135.mp3',
+      'assets/music/kidstalk09-117.mp3',
     ];
 
     final List<String> midiFilePaths = [
       'assets/midi/miidi.mid',
       'assets/midi/miidi.mid',
+      'assets/midi/kidstalk09-117.mid',
     ];
 
     final List<Song> songs = [];
