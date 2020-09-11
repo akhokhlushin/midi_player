@@ -30,12 +30,14 @@ class CatalogDataSourceImpl extends CatalogDataSource {
       'assets/music/sungirl_110.mp3',
       'assets/music/sungirl_135.mp3',
       'assets/music/kidstalk09-117.mp3',
+      'assets/music/muusic.mp3',
     ];
 
     final List<String> midiFilePaths = [
       'assets/midi/miidi.mid',
       'assets/midi/miidi.mid',
       'assets/midi/kidstalk09-117.mid',
+      'assets/midi/miidi.mid',
     ];
 
     final List<Song> songs = [];

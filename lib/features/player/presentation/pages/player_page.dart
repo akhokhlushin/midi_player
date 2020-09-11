@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marquee/marquee.dart';
 import 'package:midi_player/core/widgets/void.dart';
 import 'package:midi_player/features/catalog/presentation/bloc/catalog_bloc.dart';
+import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:midi_player/features/player/presentation/bloc/midi/midi_bloc.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 import 'package:midi_player/features/player/presentation/widgets/error.dart';
@@ -36,7 +37,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   int replicIndex = 0;
 
-  // final int _view = 20;
+  final int _view = 20;
 
   void _playReplic(String replicPath) {
     BlocProvider.of<PlayerBloc>(context).add(
@@ -284,6 +285,46 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
         const SizedBox(
           height: 20,
         ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Stack(
+            children: [
+              Row(
+                children: _getSongTrail(state.music),
+              ),
+              Container(
+                width: size.width * 5,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List<Widget>.generate(
+                    state.music.bitAmount,
+                    (index) => Container(
+                      height: 75,
+                      color: Colors.green,
+                      width: 1,
+                    ),
+                  ),
+                ),
+              ),
+              AnimatedBuilder(
+                animation: animationController,
+                builder: (context, child) {
+                  return Positioned(
+                    left: animationController.value * ((size.width * 5) - 2),
+                    child: Container(
+                      width: 2,
+                      height: 75,
+                      color: Colors.blue,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(
+          height: 20,
+        ),
         const Expanded(
           child: SizedBox(),
         ),
@@ -292,10 +333,48 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
           child: Marquee(
             text: state.song.fullName,
             blankSpace: 50,
+            style: const TextStyle(
+              fontFamily: 'Terminal',
+            ),
           ),
         ),
       ],
     );
+  }
+
+  List<Widget> _getSongTrail(PlayerData music) {
+    final screenSize = MediaQuery.of(context).size;
+
+    final List<Widget> result = [];
+
+    final borders = music.getBordersByIndex(_replicGapStream.value);
+
+    for (int i = 0; i < borders.length; i++) {
+      final border = borders[i];
+
+      result.add(
+        _buildEvent(
+          screenSize,
+          border,
+        ),
+      );
+    }
+
+    return result;
+  }
+
+  Widget _buildEvent(Size size, double border) {
+    final widget = Positioned(
+      top: 0,
+      left: (size.width * _view) * border,
+      child: Container(
+        height: 75,
+        color: Colors.black,
+        width: 5,
+      ),
+    );
+
+    return widget;
   }
 
   Widget _buildFailure(String message, void Function() onError) {
