@@ -7,9 +7,15 @@ class PlayButton extends StatefulWidget {
   final void Function() onPlay;
   final void Function() onPause;
   final void Function() onLong;
+  final bool disable;
 
   const PlayButton(
-      {Key key, this.value, this.onPlay, this.onPause, this.onLong})
+      {Key key,
+      this.value,
+      this.onPlay,
+      this.onPause,
+      this.onLong,
+      this.disable})
       : super(key: key);
 
   @override
@@ -24,11 +30,12 @@ class _PlayButtonState extends State<PlayButton> {
       onHasData: (value) {
         return InkWell(
           child: GestureDetector(
-            onTap: value ? widget.onPlay : widget.onPause,
+            onTap:
+                widget.disable ? null : value ? widget.onPlay : widget.onPause,
             onLongPress: widget.onLong,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: widget.disable ? Colors.grey : Colors.blue,
                 borderRadius: BorderRadius.circular(25),
               ),
               width: 50,

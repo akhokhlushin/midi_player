@@ -1,23 +1,13 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:midi_player/core/errors/failures.dart';
+import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerRepository {
-  // Future<Either<Failure, void>> playMusic({
-  //   @required String songPath,
-  //   @required BehaviorSubject<double> volumeMusic,
-  // });
-
-  // Future<Either<Failure, void>> pauseMusic();
-
-  // Future<Either<Failure, void>> resumeMusic({
-  //   @required BehaviorSubject<double> volumeMusic,
-  // });
-
   Future<Either<Failure, void>> playReplic({
-    @required String replicPath,
+    @required int replicIndex,
     @required BehaviorSubject<double> volumeReplic,
   });
 
@@ -29,7 +19,8 @@ abstract class PlayerRepository {
 
   Future<Either<Failure, void>> stopReplic();
 
-  // Future<Either<Failure, void>> stopMusic();
+  Future<Either<Failure, PlayerState>> getAudioPlayerState();
 
-  Future<Either<Failure, AudioPlayerState>> getAudioPlayerState();
+  Future<Either<Failure, void>> loadAllReplics(
+      {@required List<Replic> replics});
 }

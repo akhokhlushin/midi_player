@@ -1,11 +1,13 @@
-import 'package:audioplayers/audio_cache.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'dart:async';
+
+import 'package:just_audio/just_audio.dart';
+import 'package:midi_player/features/catalog/domain/entities/song.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class MusicDataSource {
   // Starts playing music from assets (or from NOT IMPLEMENTED API)
   Future<void> playMusic({
-    String songPath,
+    int songIndex,
     BehaviorSubject<double> volumeMusic,
   });
 
@@ -26,20 +28,19 @@ abstract class MusicDataSource {
   // Gets state of playing music
 
   Future<Stream<Duration>> getOnDurationChangeStream();
+
+  Future<void> loadAllMusics({List<Song> songs});
 }
 
 class MusicDataSourceImpl extends MusicDataSource {
   final AudioPlayer _audioPlayer;
-  AudioCache _audioCache;
 
   // Use of API
   // TODO: Change code for getting and playing music from API
 
   MusicDataSourceImpl(
     this._audioPlayer,
-  ) {
-    _audioCache = AudioCache(fixedPlayer: _audioPlayer);
-  }
+  );
 
   @override
   Future<void> pauseMusic() async {
@@ -47,29 +48,38 @@ class MusicDataSourceImpl extends MusicDataSource {
   }
 
   @override
-  Future<void> playMusic(
-      {String songPath, BehaviorSubject<double> volumeMusic}) async {
+  Future<void> playMusic({
+    int songIndex,
+    BehaviorSubject<double> volumeMusic,
+  }) async {
     volumeMusic.listen((value) async {
       await _audioPlayer.setVolume(value);
     });
-
-    final path =
-        songPath.startsWith('assets/') ? songPath.substring(7) : songPath;
 
     final volume = volumeMusic.value;
 
-    await _audioCache.play(path);
+    await _audioPlayer.seek(Duration.zero, index: songIndex);
+
+    _audioPlayer.play();
 
     await _audioPlayer.setVolume(volume);
+
+    _audioPlayer.currentIndexStream.listen((event) async {
+      if (event != songIndex) {
+        await _audioPlayer.pause();
+      }
+    });
   }
 
   @override
-  Future<void> resumeMusic({BehaviorSubject<double> volumeMusic}) async {
+  Future<void> resumeMusic({
+    BehaviorSubject<double> volumeMusic,
+  }) async {
     volumeMusic.listen((value) async {
       await _audioPlayer.setVolume(value);
     });
 
-    await _audioPlayer.resume();
+    await _audioPlayer.play();
   }
 
   @override
@@ -79,6 +89,23 @@ class MusicDataSourceImpl extends MusicDataSource {
 
   @override
   Future<Stream<Duration>> getOnDurationChangeStream() async {
-    return _audioPlayer.onAudioPositionChanged;
+    return _audioPlayer.durationStream;
+  }
+
+  @override
+  Future<void> loadAllMusics({List<Song> songs}) async {
+    await _audioPlayer.load(
+      ConcatenatingAudioSource(
+        children: songs
+            .map(
+              (e) => AudioSource.uri(
+                Uri.parse(
+                  'asset:///${e.path}',
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 }

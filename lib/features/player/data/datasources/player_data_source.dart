@@ -1,68 +1,69 @@
 import 'dart:async';
 
-import 'package:audioplayers/audio_cache.dart';
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerDataSource {
-  // Starts playing replic from assets
-
+  /// Starts playing replic from assets
   Future<void> playReplic({
-    String replicPath,
+    int replicIndex,
     BehaviorSubject<double> volumeReplic,
   });
 
-  // Pauses replic in current location
-
+  /// Pauses replic in current location
   Future<void> pauseReplic();
 
-  // Resumes replic
-
+  /// Resumes replic
   Future<void> resumeReplic({
     BehaviorSubject<double> volumeReplic,
   });
 
-  // Stops playing replic
-
+  /// Stops playing replic
   Future<void> stopReplic();
 
-  // Gets current audioplayer state
+  /// Gets current audioplayer state
+  Future<PlayerState> getAudioPlayerState();
 
-  Future<AudioPlayerState> getAudioPlayerState();
+  /// Sets all replics to be ready for playing
+  Future<void> loadAllReplics({List<Replic> replics});
 }
 
 class PlayerDataSourceImpl extends PlayerDataSource {
   final AudioPlayer _audioPlayer;
-  AudioCache _audioCache;
 
   // Use of API
   // TODO: Change code for getting and playing music from API
 
   PlayerDataSourceImpl(
     this._audioPlayer,
-  ) {
-    _audioCache = AudioCache(fixedPlayer: _audioPlayer);
-  }
+  );
 
   @override
   Future<void> pauseReplic() async {
-    if (_audioPlayer.state == AudioPlayerState.PLAYING) {
-      await _audioPlayer.pause();
-    }
+    await _audioPlayer.pause();
   }
 
   @override
   Future<void> playReplic(
-      {String replicPath, BehaviorSubject<double> volumeReplic}) async {
+      {int replicIndex, BehaviorSubject<double> volumeReplic}) async {
     volumeReplic.listen((value) async {
       await _audioPlayer.setVolume(value);
     });
 
     final volume = volumeReplic.value;
 
-    await _audioCache.play(replicPath);
+    await _audioPlayer.seek(Duration.zero, index: replicIndex);
+
+    _audioPlayer.play();
 
     await _audioPlayer.setVolume(volume);
+
+    _audioPlayer.currentIndexStream.listen((event) async {
+      if (event == replicIndex + 1) {
+        await _audioPlayer.pause();
+      }
+    });
   }
 
   @override
@@ -71,9 +72,7 @@ class PlayerDataSourceImpl extends PlayerDataSource {
       await _audioPlayer.setVolume(value);
     });
 
-    if (_audioPlayer.state == AudioPlayerState.PAUSED) {
-      await _audioPlayer.resume();
-    }
+    _audioPlayer.play();
   }
 
   @override
@@ -82,7 +81,24 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   }
 
   @override
-  Future<AudioPlayerState> getAudioPlayerState() async {
-    return _audioPlayer.state;
+  Future<PlayerState> getAudioPlayerState() async {
+    return _audioPlayer.playerState;
+  }
+
+  @override
+  Future<void> loadAllReplics({List<Replic> replics}) async {
+    await _audioPlayer.load(
+      ConcatenatingAudioSource(
+        children: replics
+            .map(
+              (e) => AudioSource.uri(
+                Uri.parse(
+                  'asset:///${e.replicPath}',
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 }

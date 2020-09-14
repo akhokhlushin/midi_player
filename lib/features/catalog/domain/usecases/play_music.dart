@@ -12,13 +12,18 @@ class PlayMusic extends UseCase<void, PlayMusicParams> {
   @override
   Future<Either<Failure, void>> call(PlayMusicParams params) {
     return _repository.playMusic(
-        songPath: params.songPath, volumeMusic: params.volume);
+      songIndex: params.songIndex,
+      volumeMusic: params.volume,
+    );
   }
 }
 
 class PlayMusicParams {
-  final String songPath;
+  final int songIndex;
   final BehaviorSubject<double> volume;
 
-  PlayMusicParams({this.songPath, this.volume});
+  PlayMusicParams({
+    this.songIndex,
+    this.volume,
+  });
 }

@@ -103,8 +103,14 @@ class _CatalogPageState extends State<CatalogPage> {
             );
           },
         ),
-        ListView.builder(
+        ListView.separated(
           shrinkWrap: true,
+          separatorBuilder: (context, index) {
+            return const Divider(
+              color: Colors.white,
+              height: 3,
+            );
+          },
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {

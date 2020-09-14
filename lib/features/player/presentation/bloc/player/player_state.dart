@@ -9,6 +9,8 @@ abstract class PlayerState extends Equatable {
 
 class PlayerInitial extends PlayerState {}
 
+class PlayerPlaying extends PlayerState {}
+
 class PlayerFailure extends PlayerState {
   final String message;
 

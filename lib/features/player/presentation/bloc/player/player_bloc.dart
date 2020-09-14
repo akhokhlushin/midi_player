@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:midi_player/features/catalog/domain/usecases/play_music.dart';
@@ -56,10 +55,10 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         (failure) => PlayerFailure(message: failure.message),
         (state) async {
           if (event.variousOfPlay.value) {
-            if (state != AudioPlayerState.PLAYING) {
+            if (!state.playing) {
               await _playReplic(
                 PlayReplicParams(
-                  path: event.replicPath,
+                  replicIndex: event.replicIndex,
                   volume: event.volume,
                 ),
               );
@@ -67,19 +66,19 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
               _onPlayStream.add(MidiEventEntity());
             }
           } else {
-            if (state == AudioPlayerState.PLAYING) {
+            if (state.playing) {
               await _stopReplic(NoParams());
 
               await _playReplic(
                 PlayReplicParams(
-                  path: event.replicPath,
+                  replicIndex: event.replicIndex,
                   volume: event.volume,
                 ),
               );
             } else {
               await _playReplic(
                 PlayReplicParams(
-                  path: event.replicPath,
+                  replicIndex: event.replicIndex,
                   volume: event.volume,
                 ),
               );
@@ -91,14 +90,23 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
         },
       );
     } else if (event is PlayMusicE) {
-      await _playMusic(
+      final playOrFailure = await _playMusic(
         PlayMusicParams(
-          songPath: event.songPath,
+          songIndex: event.index,
           volume: event.volume,
         ),
       );
+
+      yield playOrFailure.fold(
+        (failure) => PlayerFailure(message: failure.message),
+        (_) => PlayerPlaying(),
+      );
     } else if (event is ResumeMusicE) {
-      await _resumeMusic(event.volume);
+      await _resumeMusic(
+        ResumeMusicParams(
+          volume: event.volume,
+        ),
+      );
     } else if (event is PauseE) {
       await _pauseReplic(NoParams());
       await _pauseMusic(NoParams());

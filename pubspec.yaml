@@ -25,7 +25,7 @@ dependencies:
   rxdart: 
   logger:
   # Device
-  audioplayers:
+  just_audio:
   path_provider: 
   path: 
   flutter_sound:
@@ -48,4 +48,4 @@ flutter:
   fonts:
     - family: Terminal
       fonts:
-        - asset: fonts/terminal.ttf
+        - asset: assets/fonts/terminal.ttf

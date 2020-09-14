@@ -1,13 +1,15 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:dart_midi/dart_midi.dart';
 import 'package:flutter_sound/flauto.dart';
 import 'package:get_it/get_it.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:midi_player/features/catalog/data/datasources/catalog_data_source.dart';
 import 'package:midi_player/features/catalog/data/datasources/music_data_source.dart';
 import 'package:midi_player/features/catalog/data/repositories/music_repository_impl.dart';
 import 'package:midi_player/features/catalog/domain/usecases/get_on_duration_change_stream.dart';
 import 'package:midi_player/features/catalog/domain/usecases/get_songs.dart';
+import 'package:midi_player/features/catalog/domain/usecases/load_all_musics.dart';
 import 'package:midi_player/features/catalog/presentation/bloc/catalog_bloc.dart';
+import 'package:midi_player/features/player/domain/usecases/load_all_replics.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
@@ -78,6 +80,10 @@ void initialiseDependecies() {
     ),
   );
 
+  sl.registerSingleton(LoadAllMusics(sl<MusicRepositoryImpl>()));
+
+  sl.registerSingleton(LoadAllReplics(sl<PlayerRepositoryImpl>()));
+
   sl.registerSingleton(PlayMusic(sl<MusicRepositoryImpl>()));
 
   sl.registerSingleton(PauseMusic(sl<MusicRepositoryImpl>()));
@@ -122,6 +128,7 @@ void initialiseDependecies() {
     MidiBloc(
       sl<GetMusic>(),
       sl<GetMidiEventsAmount>(),
+      sl<LoadAllReplics>(),
     ),
   );
 
@@ -129,6 +136,7 @@ void initialiseDependecies() {
     CatalogBloc(
       sl<GetSongs>(),
       sl<GetOnDurationChangeStream>(),
+      sl<LoadAllMusics>(),
     ),
   );
 }

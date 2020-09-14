@@ -22,13 +22,17 @@ class PlayerData extends Equatable {
       if (i == 0) {
         d += replics[i].timeBefore;
 
-        borders.add(d.inMilliseconds / midiFileDuration.inMilliseconds);
+        final v = d.inMilliseconds / midiFileDuration.inMilliseconds;
+
+        borders.add(v);
       } else {
         final replic1 = replics[i - 1], replic2 = replics[i];
 
         d += replic1.timeAfter + replic2.timeBefore;
 
-        borders.add(d.inMilliseconds / midiFileDuration.inMilliseconds);
+        final v = d.inMilliseconds / midiFileDuration.inMilliseconds;
+
+        borders.add(v);
       }
     }
 

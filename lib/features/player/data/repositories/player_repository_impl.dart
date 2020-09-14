@@ -1,7 +1,8 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:midi_player/features/player/data/datasources/player_data_source.dart';
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
+import 'package:midi_player/features/player/domain/entities/replic.dart';
 import 'package:midi_player/features/player/domain/repositories/player_repository.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -24,13 +25,6 @@ class PlayerRepositoryImpl extends PlayerRepository {
     }
   }
 
-  // @override
-  // Future<Either<Failure, void>> pauseMusic() {
-  //   return _handleCalls<void>(
-  //     () => _dataSource.pauseMusic(),
-  //   );
-  // }
-
   @override
   Future<Either<Failure, void>> pauseReplic() {
     return _handleCalls<void>(
@@ -38,37 +32,16 @@ class PlayerRepositoryImpl extends PlayerRepository {
     );
   }
 
-  // @override
-  // Future<Either<Failure, void>> playMusic(
-  //     {String songPath, BehaviorSubject<double> volumeMusic}) {
-  //   return _handleCalls<void>(
-  //     () => _dataSource.playMusic(
-  //       volumeMusic: volumeMusic,
-  //       songPath: songPath,
-  //     ),
-  //   );
-  // }
-
   @override
   Future<Either<Failure, void>> playReplic(
-      {String replicPath, BehaviorSubject<double> volumeReplic}) {
+      {int replicIndex, BehaviorSubject<double> volumeReplic}) {
     return _handleCalls<void>(
       () => _dataSource.playReplic(
-        replicPath: replicPath,
+        replicIndex: replicIndex,
         volumeReplic: volumeReplic,
       ),
     );
   }
-
-  // @override
-  // Future<Either<Failure, void>> resumeMusic(
-  //     {BehaviorSubject<double> volumeMusic}) {
-  //   return _handleCalls<void>(
-  //     () => _dataSource.resumeMusic(
-  //       volumeMusic: volumeMusic,
-  //     ),
-  //   );
-  // }
 
   @override
   Future<Either<Failure, void>> resumeReplic(
@@ -88,16 +61,16 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, AudioPlayerState>> getAudioPlayerState() {
-    return _handleCalls<AudioPlayerState>(
+  Future<Either<Failure, PlayerState>> getAudioPlayerState() {
+    return _handleCalls<PlayerState>(
       () => _dataSource.getAudioPlayerState(),
     );
   }
 
-  // @override
-  // Future<Either<Failure, void>> stopMusic() {
-  //   return _handleCalls<void>(
-  //     () => _dataSource.stopMusic(),
-  //   );
-  // }
+  @override
+  Future<Either<Failure, void>> loadAllReplics({List<Replic> replics}) {
+    return _handleCalls<void>(
+      () => _dataSource.loadAllReplics(replics: replics),
+    );
+  }
 }

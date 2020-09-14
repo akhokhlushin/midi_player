@@ -12,13 +12,13 @@ class PlayReplic extends UseCase<void, PlayReplicParams> {
   @override
   Future<Either<Failure, void>> call(PlayReplicParams params) {
     return _repository.playReplic(
-        replicPath: params.path, volumeReplic: params.volume);
+        replicIndex: params.replicIndex, volumeReplic: params.volume);
   }
 }
 
 class PlayReplicParams {
-  final String path;
+  final int replicIndex;
   final BehaviorSubject<double> volume;
 
-  PlayReplicParams({this.path, this.volume});
+  PlayReplicParams({this.replicIndex, this.volume});
 }

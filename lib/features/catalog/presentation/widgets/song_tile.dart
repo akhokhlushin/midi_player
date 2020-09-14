@@ -17,17 +17,56 @@ class _SongTileState extends State<SongTile> {
     final song = widget.song;
 
     return ListTile(
-      leading: song.image != null
-          ? CircleAvatar(backgroundImage: song.image)
-          : const Icon(Icons.music_note),
-      title: Text(song.songName),
-      subtitle: Text('Album: ${song.album}, author: ${song.author}'),
-      trailing: widget.current
-          ? const Icon(
-              Icons.check,
-              color: Colors.orange,
+      leading: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (song.image != null)
+            Container(
+              width: 50,
+              height: 50,
+              child: Image(
+                image: song.image,
+              ),
             )
-          : null,
+          else
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.white,
+                  width: 2,
+                ),
+              ),
+              // child: const Icon(Icons.music_note),
+            ),
+          if (widget.current)
+            const Icon(
+              Icons.favorite_border,
+              color: Colors.red,
+            ),
+        ],
+      ),
+      title: Text(song.songName),
+      subtitle: Text('${song.author}: ${song.album}'),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('${song.bpm} bpm'),
+          Text(getDurStr(song.songDuration)),
+        ],
+      ),
     );
   }
+}
+
+String getDurStr(Duration d) {
+  final hours = d.inHours;
+  final minutes = d.inMinutes;
+  final seconds = d.inSeconds - (minutes * 60);
+
+  if (hours != 0) {
+    return '$hours:$minutes:$seconds';
+  }
+  return '$minutes:$seconds';
 }

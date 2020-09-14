@@ -9,6 +9,7 @@ class Song extends Equatable {
   final Duration songDuration;
   final String path;
   final String midiFilePath;
+  final int bpm;
 
   const Song({
     this.path,
@@ -18,10 +19,11 @@ class Song extends Equatable {
     this.author,
     this.songDuration,
     this.midiFilePath,
+    this.bpm,
   });
 
   @override
-  List<Object> get props => [image, songDuration, album, author, songName];
+  List<Object> get props => [image, songDuration, album, author, songName, bpm];
 
   String get fullName => '$author, $album - $songName';
 }

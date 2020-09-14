@@ -1,6 +1,7 @@
 import 'package:midi_player/core/errors/failures.dart';
 import 'package:dartz/dartz.dart';
 import 'package:midi_player/features/catalog/data/datasources/music_data_source.dart';
+import 'package:midi_player/features/catalog/domain/entities/song.dart';
 import 'package:midi_player/features/catalog/domain/repository/music_repository.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -38,11 +39,13 @@ class MusicRepositoryImpl extends MusicRepository {
   }
 
   @override
-  Future<Either<Failure, void>> playMusic(
-      {String songPath, BehaviorSubject<double> volumeMusic}) {
+  Future<Either<Failure, void>> playMusic({
+    int songIndex,
+    BehaviorSubject<double> volumeMusic,
+  }) {
     return _handleCalls<void>(
       () => _musicDataSource.playMusic(
-        songPath: songPath,
+        songIndex: songIndex,
         volumeMusic: volumeMusic,
       ),
     );
@@ -62,6 +65,13 @@ class MusicRepositoryImpl extends MusicRepository {
   Future<Either<Failure, void>> stopMusic() {
     return _handleCalls<void>(
       () => _musicDataSource.stopMusic(),
+    );
+  }
+
+  @override
+  Future<Either<Failure, void>> loadAllMusics({List<Song> songs}) {
+    return _handleCalls<void>(
+      () => _musicDataSource.loadAllMusics(songs: songs),
     );
   }
 }

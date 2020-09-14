@@ -29,14 +29,14 @@ class CatalogDataSourceImpl extends CatalogDataSource {
     final List<String> songsPaths = [
       'assets/music/sungirl_110.mp3',
       'assets/music/sungirl_135.mp3',
-      'assets/music/kidstalk09-117.mp3',
+      'assets/music/kidstalk09-117best.mp3',
       'assets/music/muusic.mp3',
     ];
 
     final List<String> midiFilePaths = [
       'assets/midi/miidi.mid',
       'assets/midi/miidi.mid',
-      'assets/midi/kidstalk09-117.mid',
+      'assets/midi/kidstalk09-117 (2).mid',
       'assets/midi/miidi.mid',
     ];
 
@@ -79,6 +79,7 @@ class CatalogDataSourceImpl extends CatalogDataSource {
         image: image,
         midiFilePath: midiFilePath,
         path: songPath,
+        bpm: rawSongData['bitrate'] as int,
         songDuration: Duration(milliseconds: rawSongData['duration'] as int),
         songName: songData['title'] as String ?? unknown,
       );
