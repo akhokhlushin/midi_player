@@ -9,6 +9,7 @@ import 'package:midi_player/features/catalog/domain/usecases/get_on_duration_cha
 import 'package:midi_player/features/catalog/domain/usecases/get_songs.dart';
 import 'package:midi_player/features/catalog/domain/usecases/load_all_musics.dart';
 import 'package:midi_player/features/catalog/presentation/bloc/catalog_bloc.dart';
+import 'package:midi_player/features/player/data/datasources/midi_controller.dart';
 import 'package:midi_player/features/player/domain/usecases/load_all_replics.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 
@@ -21,7 +22,6 @@ import 'features/player/data/datasources/audio_data_source.dart';
 import 'features/player/data/datasources/player_data_source.dart';
 import 'features/player/data/repositories/audio_data_repository_impl.dart';
 import 'features/player/data/repositories/player_repository_impl.dart';
-import 'features/player/domain/usecases/get_audio_player_state.dart';
 import 'features/player/domain/usecases/get_events_amount.dart';
 import 'features/player/domain/usecases/get_replics_path.dart';
 import 'features/player/domain/usecases/pause_replic.dart';
@@ -38,9 +38,13 @@ void initialiseDependecies() {
   sl.registerSingleton(FlutterSoundHelper());
   sl.registerFactory(() => AudioPlayer());
 
+  sl.registerSingleton(MidiController(
+    sl<AudioPlayer>(),
+  ));
+
   sl.registerSingleton(
     PlayerDataSourceImpl(
-      sl<AudioPlayer>(),
+      sl<MidiController>(),
     ),
   );
 
@@ -82,7 +86,7 @@ void initialiseDependecies() {
 
   sl.registerSingleton(LoadAllMusics(sl<MusicRepositoryImpl>()));
 
-  sl.registerSingleton(LoadAllReplics(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(Load(sl<PlayerRepositoryImpl>()));
 
   sl.registerSingleton(PlayMusic(sl<MusicRepositoryImpl>()));
 
@@ -95,8 +99,6 @@ void initialiseDependecies() {
   sl.registerSingleton(PauseReplic(sl<PlayerRepositoryImpl>()));
 
   sl.registerSingleton(ResumeReplic(sl<PlayerRepositoryImpl>()));
-
-  sl.registerSingleton(GetAudioPlayerState(sl<PlayerRepositoryImpl>()));
 
   sl.registerSingleton(StopReplic(sl<PlayerRepositoryImpl>()));
 
@@ -115,7 +117,6 @@ void initialiseDependecies() {
       sl<PlayReplic>(),
       sl<PauseReplic>(),
       sl<ResumeReplic>(),
-      sl<GetAudioPlayerState>(),
       sl<StopReplic>(),
       sl<PlayMusic>(),
       sl<PauseMusic>(),
@@ -128,7 +129,7 @@ void initialiseDependecies() {
     MidiBloc(
       sl<GetMusic>(),
       sl<GetMidiEventsAmount>(),
-      sl<LoadAllReplics>(),
+      sl<Load>(),
     ),
   );
 

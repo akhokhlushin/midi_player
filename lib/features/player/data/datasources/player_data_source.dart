@@ -1,104 +1,81 @@
 import 'dart:async';
 
-import 'package:just_audio/just_audio.dart';
-import 'package:midi_player/features/player/domain/entities/replic.dart';
+import 'package:midi_player/features/player/data/datasources/midi_controller.dart';
+import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:rxdart/rxdart.dart';
 
 abstract class PlayerDataSource {
   /// Starts playing replic from assets
-  Future<void> playReplic({
-    int replicIndex,
-    BehaviorSubject<double> volumeReplic,
-  });
+  Future<void> play();
 
   /// Pauses replic in current location
-  Future<void> pauseReplic();
+  Future<void> pause();
 
   /// Resumes replic
-  Future<void> resumeReplic({
-    BehaviorSubject<double> volumeReplic,
-  });
+  Future<void> resume();
 
   /// Stops playing replic
-  Future<void> stopReplic();
+  Future<void> stop();
 
-  /// Gets current audioplayer state
-  Future<PlayerState> getAudioPlayerState();
+  /// Resets all position and start playing from start
+  Future<void> reset();
 
-  /// Sets all replics to be ready for playing
-  Future<void> loadAllReplics({List<Replic> replics});
+  /// Set ups all ready to play
+  Future<void> load({
+    PlayerData data,
+    BehaviorSubject<bool> playVariation,
+    BehaviorSubject<int> gap,
+    BehaviorSubject<double> volume,
+  });
 }
 
 class PlayerDataSourceImpl extends PlayerDataSource {
-  final AudioPlayer _audioPlayer;
+  final MidiController _midiController;
 
   // Use of API
   // TODO: Change code for getting and playing music from API
 
   PlayerDataSourceImpl(
-    this._audioPlayer,
+    this._midiController,
   );
 
   @override
-  Future<void> pauseReplic() async {
-    await _audioPlayer.pause();
+  Future<void> pause() async {
+    await _midiController.pause();
   }
 
   @override
-  Future<void> playReplic(
-      {int replicIndex, BehaviorSubject<double> volumeReplic}) async {
-    volumeReplic.listen((value) async {
-      await _audioPlayer.setVolume(value);
-    });
-
-    final volume = volumeReplic.value;
-
-    await _audioPlayer.seek(Duration.zero, index: replicIndex);
-
-    _audioPlayer.play();
-
-    await _audioPlayer.setVolume(volume);
-
-    _audioPlayer.currentIndexStream.listen((event) async {
-      if (event == replicIndex + 1) {
-        await _audioPlayer.pause();
-      }
-    });
+  Future<void> play() async {
+    await _midiController.play();
   }
 
   @override
-  Future<void> resumeReplic({BehaviorSubject<double> volumeReplic}) async {
-    volumeReplic.listen((value) async {
-      await _audioPlayer.setVolume(value);
-    });
-
-    _audioPlayer.play();
+  Future<void> resume() async {
+    await _midiController.resume();
   }
 
   @override
-  Future<void> stopReplic() async {
-    await _audioPlayer.stop();
+  Future<void> stop() async {
+    await _midiController.pause();
   }
 
   @override
-  Future<PlayerState> getAudioPlayerState() async {
-    return _audioPlayer.playerState;
-  }
-
-  @override
-  Future<void> loadAllReplics({List<Replic> replics}) async {
-    await _audioPlayer.load(
-      ConcatenatingAudioSource(
-        children: replics
-            .map(
-              (e) => AudioSource.uri(
-                Uri.parse(
-                  'asset:///${e.replicPath}',
-                ),
-              ),
-            )
-            .toList(),
-      ),
+  Future<void> load({
+    PlayerData data,
+    BehaviorSubject<bool> playVariation,
+    BehaviorSubject<int> gap,
+    BehaviorSubject<double> volume,
+  }) async {
+    return _midiController.setup(
+      data: data,
+      playVariation: playVariation,
+      gap: gap,
+      volume: volume,
     );
+  }
+
+  @override
+  Future<void> reset() async {
+    await _midiController.reset();
   }
 }

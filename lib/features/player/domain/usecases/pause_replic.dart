@@ -11,6 +11,6 @@ class PauseReplic extends UseCase<void, NoParams> {
 
   @override
   Future<Either<Failure, void>> call(NoParams params) {
-    return _repository.pauseReplic();
+    return _repository.pause();
   }
 }

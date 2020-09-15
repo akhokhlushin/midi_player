@@ -8,6 +8,7 @@ import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:midi_player/features/player/domain/usecases/get_events_amount.dart';
 import 'package:midi_player/features/player/domain/usecases/get_replics_path.dart';
 import 'package:midi_player/features/player/domain/usecases/load_all_replics.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'midi_event.dart';
 part 'midi_state.dart';
@@ -15,9 +16,9 @@ part 'midi_state.dart';
 class MidiBloc extends Bloc<MidiEvent, MidiState> {
   final GetMidiEventsAmount _getMidiEventsAmount;
   final GetMusic _getMusic;
-  final LoadAllReplics _loadAllReplics;
+  final Load _load;
 
-  MidiBloc(this._getMusic, this._getMidiEventsAmount, this._loadAllReplics);
+  MidiBloc(this._getMusic, this._getMidiEventsAmount, this._load);
 
   @override
   MidiState get initialState => MidiInitial();
@@ -45,7 +46,14 @@ class MidiBloc extends Bloc<MidiEvent, MidiState> {
           return await musicOrFailure.fold(
             (failure) => MidiFailure(failure.message),
             (music) async {
-              final loadOrFailure = await _loadAllReplics(music.replics);
+              final loadOrFailure = await _load(
+                LoadParams(
+                  data: music,
+                  gap: event.gap,
+                  playVariation: event.playVariation,
+                  volume: event.volume,
+                ),
+              );
 
               return loadOrFailure.fold(
                 (failure) => MidiFailure(failure.message),

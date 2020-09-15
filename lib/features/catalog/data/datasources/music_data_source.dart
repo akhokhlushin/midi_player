@@ -63,12 +63,6 @@ class MusicDataSourceImpl extends MusicDataSource {
     _audioPlayer.play();
 
     await _audioPlayer.setVolume(volume);
-
-    _audioPlayer.currentIndexStream.listen((event) async {
-      if (event != songIndex) {
-        await _audioPlayer.pause();
-      }
-    });
   }
 
   @override
@@ -79,7 +73,7 @@ class MusicDataSourceImpl extends MusicDataSource {
       await _audioPlayer.setVolume(value);
     });
 
-    await _audioPlayer.play();
+    _audioPlayer.play();
   }
 
   @override

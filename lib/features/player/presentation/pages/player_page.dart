@@ -40,15 +40,15 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   int _view = 20;
 
-  void _playReplic() {
-    BlocProvider.of<PlayerBloc>(context).add(
-      PlayReplicE(
-        replicIndex: replicIndex,
-        variousOfPlay: _playVariation,
-        volume: _volumeReplicStream,
-      ),
-    );
-  }
+  // void _playReplic() {
+  //   BlocProvider.of<PlayerBloc>(context).add(
+  //     PlayReplicE(
+  //       replicIndex: replicIndex,
+  //       variousOfPlay: _playVariation,
+  //       volume: _volumeReplicStream,
+  //     ),
+  //   );
+  // }
 
   void _playMusic(int index) {
     BlocProvider.of<PlayerBloc>(context).add(
@@ -90,11 +90,11 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
     _playMusic(state.index);
 
-    _animationController.value = 0;
-
     _playButtonStream.add(false);
 
     Future.delayed(const Duration(milliseconds: 100), () {
+      _animationController.value = 0;
+
       _animationController.animateTo(
         1,
         duration: state.song.songDuration,
@@ -110,8 +110,6 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
     super.initState();
   }
-
-  void Function() _func;
 
   bool disable = false;
 
@@ -155,9 +153,12 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                     return BlocConsumer<PlayerBloc, PlayerState>(
                       builder: (context, state) {
                         if (state is PlayerFailure) {
-                          return _buildFailure(state.message, () {
-                            _restart(midiState);
-                          });
+                          return _buildFailure(
+                            state.message,
+                            () {
+                              _restart(midiState);
+                            },
+                          );
                         } else if (state is PlayerInitial ||
                             state is PlayerPlaying) {
                           return _buildSuccess(midiState, size);
@@ -190,23 +191,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
                     setState(() {
                       _view = (state.music.bitAmount / 32).floor();
+                      disable = false;
                     });
-
-                    _animationController.removeListener(_func);
-
-                    _func = () {
-                      final borders =
-                          state.music.getBordersByIndex(_replicGapStream.value);
-
-                      if (borders.containsNearest(
-                          _animationController.value, 0.00055)) {
-                        _playReplic();
-
-                        replicIndex++;
-                      }
-                    };
-
-                    _animationController.addListener(_func);
                   }
                 },
               );
@@ -219,6 +205,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 InitialiseMidi(
                   song: state.songs.first,
                   index: 0,
+                  gap: _replicGapStream,
+                  playVariation: _playVariation,
                 ),
               );
             }
@@ -264,7 +252,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
                 _animationController.animateTo(
                   1,
-                  duration: state.song.songDuration *
+                  duration: state.music.midiFileDuration *
                       (1 - _animationController.value),
                 );
               },
@@ -305,34 +293,17 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                   Container(
                     width: size.width * _view,
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: List<Widget>.generate(
                         state.music.bitAmount,
                         (index) => Container(
                           height: 75,
-                          color: Colors.green,
+                          color: state.music.bordersForUI.containsBinary(index)
+                              ? Colors.black
+                              : Colors.green,
                           width: 1,
                         ),
                       ),
-                    ),
-                  ),
-                  Container(
-                    width: size.width * _view,
-                    height: 75,
-                    child: Stack(
-                      children: state.music.borders
-                          .map(
-                            (e) => Positioned(
-                              top: 0,
-                              left: (size.width * _view) * e,
-                              child: Container(
-                                height: 75,
-                                width: 2,
-                                color: Colors.black,
-                              ),
-                            ),
-                          )
-                          .toList(),
                     ),
                   ),
                   AnimatedBuilder(

@@ -6,60 +6,55 @@ class PlayerData extends Equatable {
   final List<Replic> replics;
   final int bitAmount;
   final Duration midiFileDuration;
-  final List<double> borders = [];
-  List<double> _borders2 = [];
-  List<double> _borders4 = [];
-  List<double> _borders5 = [];
+  List<int> _borders = [];
+  List<int> bordersForUI = [];
+  List<int> _borders2 = [];
+  List<int> _borders4 = [];
+  List<int> _borders5 = [];
 
   PlayerData({
     this.replics,
     this.bitAmount,
     this.midiFileDuration,
   }) {
+    _borders = List<int>.generate(replics.length, (index) => index);
+
     Duration d = Duration.zero;
 
     for (int i = 0; i < replics.length; i++) {
       if (i == 0) {
         d += replics[i].timeBefore;
-
-        final v = d.inMilliseconds / midiFileDuration.inMilliseconds;
-
-        borders.add(v);
       } else {
-        final replic1 = replics[i - 1], replic2 = replics[i];
-
-        d += replic1.timeAfter + replic2.timeBefore;
-
-        final v = d.inMilliseconds / midiFileDuration.inMilliseconds;
-
-        borders.add(v);
+        d += replics[i - 1].timeAfter + replics[i].timeBefore;
       }
+      bordersForUI.add(
+          (bitAmount * (d.inMilliseconds / midiFileDuration.inMilliseconds))
+              .floor());
     }
-
     final listFor4 = [
-      borders[0],
+      _borders[0],
     ];
-    for (int i = 1; i < borders.length; i++) {
+    for (int i = 1; i < _borders.length; i++) {
       if ((i + 1) % 4 != 0) {
-        listFor4.add(borders[i]);
+        listFor4.add(_borders[i]);
       }
     }
 
     final listFor2 = [
-      borders[0],
+      _borders[0],
     ];
-    for (int i = 0; i < borders.length; i++) {
+    for (int i = 0; i < _borders.length; i++) {
       if ((i + 1) % 2 != 0) {
-        listFor2.add(borders[i]);
+        listFor2.add(_borders[i]);
       }
     }
 
-    final List<double> listFor5 = [
-      borders[0],
+    final List<int> listFor5 = [
+      _borders[0],
     ];
-    for (int i = 0; i < borders.length; i++) {
+    for (int i = 0; i < _borders.length; i++) {
       if ((i + 1) % 5 == 0) {
-        listFor5.add(borders[i]);
+        listFor5.add(_borders[i]);
       }
     }
 
@@ -70,10 +65,10 @@ class PlayerData extends Equatable {
     _borders5 = listFor5;
   }
 
-  List<double> getBordersByIndex(int index) {
+  List<int> getBordersByIndex(int index) {
     switch (index) {
       case 1:
-        return borders;
+        return _borders;
         break;
       case 4:
         return _borders4;
@@ -86,10 +81,10 @@ class PlayerData extends Equatable {
 
         break;
       default:
-        return borders;
+        return _borders;
     }
   }
 
   @override
-  List<Object> get props => [replics, bitAmount, midiFileDuration, borders];
+  List<Object> get props => [replics, bitAmount, midiFileDuration, _borders];
 }

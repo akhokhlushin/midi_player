@@ -11,6 +11,6 @@ class StopReplic extends UseCase<void, NoParams> {
 
   @override
   Future<Either<Failure, void>> call(NoParams params) {
-    return _repository.stopReplic();
+    return _repository.stop();
   }
 }
