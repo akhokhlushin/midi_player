@@ -36,28 +36,22 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
   AnimationController _animationController;
 
-  int replicIndex = 0;
-
   int _view = 20;
 
-  // void _playReplic() {
+  // void _playMusic(int index) {
   //   BlocProvider.of<PlayerBloc>(context).add(
-  //     PlayReplicE(
-  //       replicIndex: replicIndex,
-  //       variousOfPlay: _playVariation,
-  //       volume: _volumeReplicStream,
+  //     PlayMusicE(
+  //       index: index,
+  //       volume: _volumeMusicStream,
   //     ),
   //   );
   // }
 
-  void _playMusic(int index) {
-    BlocProvider.of<PlayerBloc>(context).add(
-      PlayMusicE(
-        index: index,
-        volume: _volumeMusicStream,
-      ),
-    );
-  }
+  // void _playReplics() {
+  //   BlocProvider.of<PlayerBloc>(context).add(
+  //     PlayReplicE(),
+  //   );
+  // }
 
   void _pause() {
     BlocProvider.of<PlayerBloc>(context).add(PauseE());
@@ -71,35 +65,30 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
     );
   }
 
-  void _resumeReplic() {
+  void _resumeReplics() {
     BlocProvider.of<PlayerBloc>(context).add(
       ResumeReplicE(
-        volume: _volumeMusicStream,
+        volume: _volumeReplicStream,
       ),
     );
   }
 
-  void _stop() {
-    BlocProvider.of<PlayerBloc>(context).add(StopE());
-  }
-
-  void _restart(MidiSuccess state) {
-    replicIndex = 0;
-
-    _stop();
-
-    _playMusic(state.index);
-
+  void _reset(int index, Duration d) {
     _playButtonStream.add(false);
 
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _animationController.value = 0;
+    _animationController.value = 0;
 
-      _animationController.animateTo(
-        1,
-        duration: state.song.songDuration,
-      );
-    });
+    _animationController.animateTo(
+      1,
+      duration: d,
+    );
+
+    BlocProvider.of<PlayerBloc>(context).add(
+      ResetE(
+        index,
+        _volumeMusicStream,
+      ),
+    );
   }
 
   @override
@@ -145,6 +134,9 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                           InitialiseMidi(
                             song: catalogState.songs.first,
                             index: 0,
+                            gap: _replicGapStream,
+                            playVariation: _playVariation,
+                            volume: _volumeReplicStream,
                           ),
                         );
                       },
@@ -156,7 +148,8 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                           return _buildFailure(
                             state.message,
                             () {
-                              _restart(midiState);
+                              BlocProvider.of<CatalogBloc>(context)
+                                  .add(InitialiseCatalog());
                             },
                           );
                         } else if (state is PlayerInitial ||
@@ -171,12 +164,10 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
 
                           _animationController.value = 0;
 
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            _animationController.animateTo(
-                              1,
-                              duration: midiState.song.songDuration,
-                            );
-                          });
+                          _animationController.animateTo(
+                            1,
+                            duration: midiState.song.songDuration,
+                          );
                         }
                       },
                     );
@@ -185,13 +176,18 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                 },
                 listener: (context, state) {
                   if (state is MidiSuccess) {
-                    replicIndex = 0;
+                    catalogState.stream.listen((event) {
+                      if (event == state.song.songDuration) {
+                        setState(() {
+                          disable = true;
+                        });
+                      }
+                    });
 
-                    _playMusic(state.index);
+                    _reset(state.index, state.song.songDuration);
 
                     setState(() {
                       _view = (state.music.bitAmount / 32).floor();
-                      disable = false;
                     });
                   }
                 },
@@ -207,6 +203,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
                   index: 0,
                   gap: _replicGapStream,
                   playVariation: _playVariation,
+                  volume: _volumeReplicStream,
                 ),
               );
             }
@@ -237,7 +234,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: () {
-                _restart(state);
+                _reset(state.index, state.song.songDuration);
               },
             ),
             PlayButton(
@@ -246,7 +243,7 @@ class _PlayerPageState extends State<PlayerPage> with TickerProviderStateMixin {
               onPlay: () {
                 _resumeMusic();
 
-                _resumeReplic();
+                _resumeReplics();
 
                 _playButtonStream.add(false);
 

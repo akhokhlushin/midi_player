@@ -8,8 +8,8 @@ import 'package:midi_player/features/catalog/domain/usecases/stop_music.dart';
 import 'package:midi_player/features/catalog/domain/usecases/pause_music.dart';
 import 'package:midi_player/features/player/domain/usecases/pause_replic.dart';
 import 'package:midi_player/features/player/domain/usecases/play_replic.dart';
+import 'package:midi_player/features/player/domain/usecases/reset.dart';
 import 'package:midi_player/features/player/domain/usecases/resume_replic.dart';
-import 'package:midi_player/features/player/domain/usecases/stop_replic.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'player_event.dart';
@@ -19,21 +19,21 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
   final PlayReplic _playReplic;
   final PauseReplic _pauseReplic;
   final ResumeReplic _resumeReplic;
-  final StopReplic _stopReplic;
   final PlayMusic _playMusic;
   final PauseMusic _pauseMusic;
   final ResumeMusic _resumeMusic;
   final StopMusic _stopMusic;
+  final ResetReplic _resetReplic;
 
   PlayerBloc(
     this._playReplic,
     this._pauseReplic,
     this._resumeReplic,
-    this._stopReplic,
     this._playMusic,
     this._pauseMusic,
     this._resumeMusic,
     this._stopMusic,
+    this._resetReplic,
   );
 
   @override
@@ -65,9 +65,24 @@ class PlayerBloc extends Bloc<PlayerEvent, PlayerState> {
       await _pauseMusic(NoParams());
     } else if (event is ResumeReplicE) {
       await _resumeReplic(NoParams());
-    } else if (event is StopE) {
-      await _stopReplic(NoParams());
+    } else if (event is ResetE) {
       await _stopMusic(NoParams());
+
+      final playOrFailure = await _playMusic(
+        PlayMusicParams(
+          songIndex: event.index,
+          volume: event.volume,
+        ),
+      );
+
+      yield await playOrFailure.fold(
+        (failure) => PlayerFailure(message: failure.message),
+        (_) async {
+          await _resetReplic(NoParams());
+
+          return PlayerPlaying();
+        },
+      );
     }
   }
 

@@ -14,9 +14,6 @@ abstract class PlayerDataSource {
   /// Resumes replic
   Future<void> resume();
 
-  /// Stops playing replic
-  Future<void> stop();
-
   /// Resets all position and start playing from start
   Future<void> reset();
 
@@ -52,11 +49,6 @@ class PlayerDataSourceImpl extends PlayerDataSource {
   @override
   Future<void> resume() async {
     await _midiController.resume();
-  }
-
-  @override
-  Future<void> stop() async {
-    await _midiController.pause();
   }
 
   @override

@@ -11,6 +11,7 @@ import 'package:midi_player/features/catalog/domain/usecases/load_all_musics.dar
 import 'package:midi_player/features/catalog/presentation/bloc/catalog_bloc.dart';
 import 'package:midi_player/features/player/data/datasources/midi_controller.dart';
 import 'package:midi_player/features/player/domain/usecases/load_all_replics.dart';
+import 'package:midi_player/features/player/domain/usecases/reset.dart';
 import 'package:midi_player/features/player/presentation/bloc/player/player_bloc.dart';
 
 import 'features/catalog/data/repositories/catalog_repository_impl.dart';
@@ -27,7 +28,6 @@ import 'features/player/domain/usecases/get_replics_path.dart';
 import 'features/player/domain/usecases/pause_replic.dart';
 import 'features/player/domain/usecases/play_replic.dart';
 import 'features/player/domain/usecases/resume_replic.dart';
-import 'features/player/domain/usecases/stop_replic.dart';
 import 'features/player/presentation/bloc/midi/midi_bloc.dart';
 
 final GetIt sl = GetIt.instance;
@@ -98,9 +98,9 @@ void initialiseDependecies() {
 
   sl.registerSingleton(PauseReplic(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(ResumeReplic(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(ResetReplic(sl<PlayerRepositoryImpl>()));
 
-  sl.registerSingleton(StopReplic(sl<PlayerRepositoryImpl>()));
+  sl.registerSingleton(ResumeReplic(sl<PlayerRepositoryImpl>()));
 
   sl.registerSingleton(StopMusic(sl<MusicRepositoryImpl>()));
 
@@ -117,11 +117,11 @@ void initialiseDependecies() {
       sl<PlayReplic>(),
       sl<PauseReplic>(),
       sl<ResumeReplic>(),
-      sl<StopReplic>(),
       sl<PlayMusic>(),
       sl<PauseMusic>(),
       sl<ResumeMusic>(),
       sl<StopMusic>(),
+      sl<ResetReplic>(),
     ),
   );
 

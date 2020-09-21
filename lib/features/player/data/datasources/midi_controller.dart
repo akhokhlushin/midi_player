@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:midi_player/core/constants.dart';
 import 'package:midi_player/features/player/domain/entities/player_data.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:midi_player/core/extensions/duration.dart';
 import 'package:midi_player/core/extensions/list.dart';
 
 class MidiController {
@@ -16,6 +16,7 @@ class MidiController {
   BehaviorSubject<double> _volume;
 
   int _replicIndex = 0;
+  int _mainIndex = 0;
 
   List<Duration> _durations;
 
@@ -29,46 +30,75 @@ class MidiController {
     @required BehaviorSubject<double> volume,
     @required BehaviorSubject<bool> playVariation,
   }) async {
-    _playerData ??= data;
-    _gap = gap;
-    _playVariation = playVariation;
-    _volume = volume;
+    if (data != _playerData) {
+      _playerData ??= data;
+      _gap ??= gap;
+      _playVariation ??= playVariation;
+      _volume ??= volume;
 
-    Duration d = Duration.zero;
+      Duration d = Duration.zero;
 
-    final replics = data.replics;
-
-    _durations = List.generate(replics.length, (index) {
-      if (index == 0) {
-        return d += replics[index].timeBefore;
-      } else {
-        return d += replics[index - 1].timeAfter + replics[index].timeBefore;
-      }
-    });
-
-    _volume.listen((value) {
-      _audioPlayer.setVolume(value);
-    });
-
-    _ticker = Ticker((elapsed) async {
-      if (_durations.containsNearest(elapsed)) {
-        await _playReplic();
-      }
-    });
-
-    await _audioPlayer.load(
-      ConcatenatingAudioSource(
-        children: data.replics
-            .map(
-              (e) => AudioSource.uri(
-                Uri.parse(
-                  'asset:///${e.replicPath}',
+      await _audioPlayer.load(
+        ConcatenatingAudioSource(
+          children: data.replics
+              .map(
+                (e) => AudioSource.uri(
+                  Uri.parse(
+                    'asset:///${e.replicPath}',
+                  ),
                 ),
-              ),
-            )
-            .toList(),
-      ),
-    );
+              )
+              .toList(),
+        ),
+      );
+
+      final replics = data.replics;
+
+      _durations = List.generate(replics.length, (index) {
+        if (index == 0) {
+          return d += replics[index].timeBefore;
+        } else {
+          return d += replics[index - 1].timeAfter + replics[index].timeBefore;
+        }
+      });
+
+      _volume.listen((value) {
+        _audioPlayer.setVolume(value);
+      });
+
+      const delta = Duration(milliseconds: 50);
+
+      _audioPlayer.positionStream.listen((elapsed) {
+        final duration = _mainIndex > 0
+            ? _durations[_mainIndex] - _durations[_mainIndex - 1]
+            : Duration.zero;
+
+        if (duration <= _audioPlayer.duration) {
+          if (elapsed - delta <= duration && elapsed + delta >= duration) {
+            _audioPlayer.stop();
+          }
+        } else {
+          final dd = _audioPlayer.duration;
+          if (elapsed - delta <= dd && elapsed + delta >= dd) {
+            _audioPlayer.stop();
+          }
+        }
+      });
+
+      _ticker = Ticker((elapsed) async {
+        logger.d('${elapsed - delta} <= ${_durations[_mainIndex]}');
+        logger.d('${elapsed + delta} >= ${_durations[_mainIndex]}');
+
+        if (elapsed - delta <= _durations[_mainIndex] &&
+            elapsed + delta >= _durations[_mainIndex]) {
+          logger.d('Should play here');
+
+          _playReplic();
+
+          _mainIndex++;
+        }
+      });
+    }
   }
 
   Future<void> play() async {
@@ -104,24 +134,22 @@ class MidiController {
   List<int> get _borders => _playerData.getBordersByIndex(_gap.value);
 
   Future<void> _playReplic() async {
-    await _audioPlayer.seek(Duration.zero, index: _replicIndex);
+    if (_borders.containsBinary(_mainIndex)) {
+      await _audioPlayer.seek(Duration.zero, index: _replicIndex);
 
-    if (_borders.containsBinary(_replicIndex)) {
+      _replicIndex++;
+
       if (_playVariation.value) {
         if (!_audioPlayer.playerState.playing) {
-          await _audioPlayer.play();
+          _audioPlayer.play();
         }
       } else {
         if (_audioPlayer.playerState.playing) {
           await _audioPlayer.stop();
         }
 
-        await _audioPlayer.play();
+        _audioPlayer.play();
       }
     }
-
-    _audioPlayer.stop();
-
-    _replicIndex++;
   }
 }

@@ -24,6 +24,7 @@ dependencies:
   equatable:
   rxdart: 
   logger:
+  async: 
   # Device
   just_audio:
   path_provider: 

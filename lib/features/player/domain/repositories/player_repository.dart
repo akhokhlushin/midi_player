@@ -11,8 +11,6 @@ abstract class PlayerRepository {
 
   Future<Either<Failure, void>> resume();
 
-  Future<Either<Failure, void>> stop();
-
   Future<Either<Failure, void>> reset();
 
   Future<Either<Failure, void>> load({

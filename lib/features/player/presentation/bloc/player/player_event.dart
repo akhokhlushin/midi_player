@@ -17,17 +17,7 @@ class PlayMusicE extends PlayerEvent {
   });
 }
 
-class PlayReplicE extends PlayerEvent {
-  final int replicIndex;
-  final BehaviorSubject<double> volume;
-  final BehaviorSubject<bool> variousOfPlay;
-
-  const PlayReplicE({
-    this.replicIndex,
-    this.volume,
-    this.variousOfPlay,
-  });
-}
+class PlayReplicE extends PlayerEvent {}
 
 class PauseE extends PlayerEvent {}
 
@@ -44,4 +34,9 @@ class ResumeReplicE extends PlayerEvent {
   const ResumeReplicE({this.volume});
 }
 
-class StopE extends PlayerEvent {}
+class ResetE extends PlayerEvent {
+  final int index;
+  final BehaviorSubject<double> volume;
+
+  const ResetE(this.index, this.volume);
+}

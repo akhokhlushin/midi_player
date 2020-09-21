@@ -114,14 +114,16 @@ class _CatalogPageState extends State<CatalogPage> {
           itemBuilder: (context, index) {
             return InkWell(
               onTap: () {
-                BlocProvider.of<MidiBloc>(context).add(
-                  InitialiseMidi(
-                    song: songs[index],
-                    index: index,
-                  ),
-                );
+                if (index != currentPlayingIndex) {
+                  BlocProvider.of<MidiBloc>(context).add(
+                    InitialiseMidi(
+                      song: songs[index],
+                      index: index,
+                    ),
+                  );
 
-                Navigator.of(context).pop();
+                  Navigator.of(context).pop();
+                }
               },
               child: SongTile(
                 song: songs[index],

@@ -46,13 +46,6 @@ class PlayerRepositoryImpl extends PlayerRepository {
   }
 
   @override
-  Future<Either<Failure, void>> stop() {
-    return _handleCalls<void>(
-      () => _dataSource.stop(),
-    );
-  }
-
-  @override
   Future<Either<Failure, void>> load({
     PlayerData data,
     BehaviorSubject<bool> playVariation,
